@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Notes</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>My Notes</h1>
+    <p><a href="/new-note">➕ New Note</a></p>
+    <ul>
+        {% for note in notes %}
+        <li><a href="/notes/{{ note }}">{{ note }}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

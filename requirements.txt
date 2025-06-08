@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+pydantic
+markdown  # To convert Markdown to HTML
+python-multipart
