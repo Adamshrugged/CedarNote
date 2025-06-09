@@ -49,3 +49,24 @@ blockquote {
     border-left: 4px solid #ccc;
     color: #555;
 }
+
+.editor {
+    display: flex;
+    gap: 20px;
+}
+textarea {
+    width: 50%;
+    height: 50vh;
+    font-family: monospace;
+}
+.preview {
+    width: 50%;
+    height: 50vh;
+    overflow: auto;
+    border: 1px solid #ccc;
+    padding: 1rem;
+    background-color: white;
+}
+#save-status {
+    transition: opacity 0.5s ease;
+}

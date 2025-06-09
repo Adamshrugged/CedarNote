@@ -7,11 +7,113 @@
 </head>
 <body>
     <h1>My Notes</h1>
-    <p><a href="/new-note">➕ New Note</a></p>
-    <ul>
-        {% for note in notes %}
-        <li><a href="/notes/{{ note }}">{{ note }}</a></li>
-        {% endfor %}
-    </ul>
+
+    <div style="display: flex; gap: 50px; align-items: flex-start;">
+        <!-- Left Sidebar: Folder Tree -->
+        <div style="min-width: 300px;">
+            <h3>Folders</h3>
+            <p><a href="/new-folder">📂 ➕ New Folder</a></p>  <!-- Add this line -->
+            <ul>
+                {% for folder in folder_tree %}
+                    <li>
+                        {% if folder.folder %}
+                            {% if folder.folder == current_folder %}
+                                <b><a href="/?folder={{ folder.folder }}">{{ folder.folder }}</a></b>
+                            {% else %}
+                                <a href="/?folder={{ folder.folder }}">{{ folder.folder }}</a>
+                            {% endif %}
+                        {% else %}
+                            {% if not current_folder %}
+                                <b><a href="/">Root</a></b>
+                            {% else %}
+                                <a href="/">Root</a>
+                            {% endif %}
+                        {% endif %}
+                        <ul>
+                            {% for note in folder.notes %}
+                                <li>
+                                    <a href="/notes/{{ folder.folder ~ '/' if folder.folder else '' }}{{ note }}">{{ note }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                {% endfor %}
+            </ul>
+
+
+        </div>
+
+        <!-- Right Content: Sorted/Filtered Notes List -->
+
+        <div style="flex: 1;">
+            <p>
+                <a href="/new-note">➕ New Note</a> |
+                Sort:
+                {% if current_sort == "alphabetical" %}
+                    <b>Title</b> |
+                    <a href="/?sort=recent&order={{ current_order }}">Last Modified</a>
+                {% else %}
+                    <a href="/?sort=alphabetical&order={{ current_order }}">Title</a> |
+                    <b>Last Modified</b>
+                {% endif %}
+                |
+                Order:
+                {% if current_sort == "alphabetical" %}
+                    {% if current_order == "asc" %}
+                        <b>A → Z</b> |
+                        <a href="/?sort=alphabetical&order=desc">Z→A</a>
+                    {% else %}
+                        <a href="/?sort=alphabetical&order=asc">A→Z</a> |
+                        <b>Z → A</b>
+                    {% endif %}
+                {% elif current_sort == "recent" %}
+                    {% if current_order == "desc" %}
+                        <b>Newest First</b> |
+                        <a href="/?sort=recent&order=asc">Oldest First</a>
+                    {% else %}
+                        <a href="/?sort=recent&order=desc">Newest First</a> |
+                        <b>Oldest First</b>
+                    {% endif %}
+                {% endif %}
+
+                {% if current_folder %}
+                    | <a href="/">Clear Folder Filter</a>
+                {% endif %}
+            </p>
+
+            {% if all_tags %}
+            <p>Filter by Tag:
+                {% for t in all_tags %}
+                    {% if t == current_tag %}
+                        <b>#{{ t }}</b>
+                    {% else %}
+                        <a href="/?tag={{ t }}&sort={{ current_sort }}&order={{ current_order }}">#{{ t }}</a>
+                    {% endif %}
+                {% endfor %}
+                {% if current_tag %}
+                    | <a href="/?sort={{ current_sort }}&order={{ current_order }}">Clear Filter</a>
+                {% endif %}
+            </p>
+            {% endif %}
+
+            <ul>
+                {% for note in notes %}
+                <li>
+                    <a href="/notes/{{ note.filename }}">{{ note.title }}</a>
+                    <small>({{ note.filename }})</small><br>
+                    {% if note.category %}
+                        <b>Category:</b> {{ note.category }}<br>
+                    {% endif %}
+                    {% if note.tags %}
+                        <b>Tags:</b>
+                        {% for tag in note.tags %}
+                            #{{ tag }}
+                        {% endfor %}
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
 </body>
 </html>

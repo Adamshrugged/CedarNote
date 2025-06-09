@@ -3,3 +3,5 @@ uvicorn
 pydantic
 markdown  # To convert Markdown to HTML
 python-multipart
+pyyaml
+shutil

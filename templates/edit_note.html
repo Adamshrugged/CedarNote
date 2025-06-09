@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Note - {{ title }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Editing: {{ title }}</h1>
+    <div>
+        <form method="post" action="/save-note/{{ title }}">
+            <div class="editor">
+                <textarea id="content" name="content" oninput="updatePreview()" required>{{ content }}</textarea>
+                <div id="preview" class="preview"></div>
+            </div>
+            <br>
+            <button type="submit">💾 Save</button>
+        </form>
+        <form method="post" action="/delete-note/{{ title }}" onsubmit="return confirm('Are you sure you want to delete this note?');">
+            <button type="submit">🗑️ Delete Note</button>
+        </form>
+        <form method="post" action="/move-note/{{ title }}">
+            <label for="destination_folder">Move to Folder:</label><br>
+            <select id="destination_folder" name="destination_folder">
+                {% for folder in folders %}
+                    <option value="{{ folder }}">{{ folder }}</option>
+                {% endfor %}
+            </select><br><br>
+            <button type="submit">📂 Move Note</button>
+        </form>
+
+
+    </div>
+    <div id="save-status" style="margin-top: 10px; color: green; display: none;">
+    💾 Saved
+    </div>
+
+
+    <p><a href="/">← Back to Notes List</a></p>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        function updatePreview() {
+            const rawMarkdown = document.getElementById('content').value;
+            document.getElementById('preview').innerHTML = marked.parse(rawMarkdown);
+        }
+
+        // Initialize preview on page load
+        updatePreview();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        let lastContent = document.getElementById('content').value;
+        let autosaveInterval = 5000; // 5 seconds
+        const filename = "{{ title }}";  // injected from server
+
+        
+        function stripFrontmatter(text) {
+            // Check if text starts with ---
+            if (text.startsWith('---')) {
+                const endIndex = text.indexOf('---', 3);  // find the second ---
+                if (endIndex !== -1) {
+                    // Remove the frontmatter block
+                    return text.slice(endIndex + 3).trim();
+                }
+            }
+            return text;
+        }
+        function convertInternalLinks(text) {
+            // Replace [[Note Title]] with <a href="/notes/Note Title.md">Note Title</a>
+            return text.replace(/\[\[([^\]]+)\]\]/g, function(match, p1) {
+                const link = `/notes/${encodeURIComponent(p1.trim())}.md`;
+                return `<a href="${link}">${p1.trim()}</a>`;
+            });
+        }
+        function updatePreview() {
+            const rawMarkdown = document.getElementById('content').value;
+            const markdownWithoutFrontmatter = stripFrontmatter(rawMarkdown);
+            const markdownWithLinks = convertInternalLinks(markdownWithoutFrontmatter);
+            document.getElementById('preview').innerHTML = marked.parse(markdownWithLinks);
+        }
+
+        function showSaveStatus() {
+            const saveStatus = document.getElementById('save-status');
+            saveStatus.style.display = 'block';  // show it
+            saveStatus.style.opacity = 1;
+
+            // Fade out after 2 seconds
+            setTimeout(() => {
+                saveStatus.style.opacity = 0;
+                setTimeout(() => {
+                    saveStatus.style.display = 'none';
+                }, 500); // wait for fade out
+            }, 2000);
+        }
+
+        async function autoSave() {
+            const currentContent = document.getElementById('content').value;
+            if (currentContent !== lastContent) {
+                console.log('Autosaving...');
+                try {
+                    const response = await fetch(`/autosave-note/${filename}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ content: currentContent })
+                    });
+                    if (response.ok) {
+                        lastContent = currentContent;
+                        console.log('Autosave complete.');
+                        showSaveStatus();  // <-- Call the status show
+                    } else {
+                        console.error('Autosave failed.');
+                    }
+                } catch (error) {
+                    console.error('Autosave error:', error);
+                }
+            }
+        }
+
+        // Update preview on input
+        document.getElementById('content').addEventListener('input', updatePreview);
+
+        // Kick off autosave every interval
+        setInterval(autoSave, autosaveInterval);
+
+        // Initialize preview on page load
+        updatePreview();
+    </script>
+
+</body>
+</html>
