@@ -8,6 +8,10 @@ created: 2025-06-08
 # Markdown Todo list
 
 **In Progress:**
+- Add a dark mode
+- Allow changing templates
+- Cell phone template
+- Show/Hide preview on edit and new notes
 - Consistent title showing vs. file name
 - Expandable folder / subfolders = collapse / expand
 - Add search through notes (tag, category, title)
@@ -16,6 +20,8 @@ created: 2025-06-08
 
 
 **Completed:**
+- Separate python files logically
+- Fix autosave
 - Browse or filter by tags
 - Add deleting notes.
 - Add tags or categories (special syntax in notes)

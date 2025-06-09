@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>New Note</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}Create New Note {% endblock %}
+
+{% block content %}
     <h1>New Note</h1>
     <form method="post" action="/create-note">
         <label for="title">Title (no spaces, no extension):</label><br>
@@ -70,5 +67,4 @@ created: {{ current_date }}
         // Initialize empty preview on page load
         updatePreview();
     </script>
-</body>
-</html>
+{% endblock %}

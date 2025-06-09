@@ -1,6 +1,7 @@
 fastapi
+pathlib
 uvicorn
-pydantic
+#pydantic
 markdown  # To convert Markdown to HTML
 python-multipart
 pyyaml

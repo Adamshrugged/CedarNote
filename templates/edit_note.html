@@ -1,11 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Edit Note - {{ title }}</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}Editing {{ note_title }}{% endblock %}
+{% block content %}
     <h1>Editing: {{ title }}</h1>
     <div>
         <form method="post" action="/save-note/{{ title }}">
@@ -129,5 +125,4 @@
         updatePreview();
     </script>
 
-</body>
-</html>
+{% endblock %}

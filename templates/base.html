@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}My Notes App{% endblock %}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <h1><a href="/">📝 My Notes</a></h1>
+        <nav>
+            <a href="/new-note">➕ New Note</a> |
+            <a href="/new-folder">📂 New Folder</a>
+        </nav>
+        <hr>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer style="margin-top: 30px;">
+        <hr>
+        <p style="text-align: center;">My Notes App</p>
+    </footer>
+</body>
+</html>

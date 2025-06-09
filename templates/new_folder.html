@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>New Folder</title>
-    <link rel="stylesheet" href="/static/styles.css">
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}Create New Folder {% endblock %}
+
+{% block content %}
     <h1>Create New Folder</h1>
     <form method="post" action="/create-folder">
         <label for="folder_name">Folder Name:</label><br>
@@ -23,5 +20,4 @@
         <button type="submit">📂 Create Folder</button>
     </form>
     <p><a href="/">← Back to Notes List</a></p>
-</body>
-</html>
+{% endblock %}

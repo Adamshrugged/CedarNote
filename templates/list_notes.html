@@ -1,18 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>My Notes</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}All Notes{% endblock %}
+
+{% block content %}
     <h1>My Notes</h1>
 
     <div style="display: flex; gap: 50px; align-items: flex-start;">
         <!-- Left Sidebar: Folder Tree -->
+
         <div style="min-width: 300px;">
-            <h3>Folders</h3>
-            <p><a href="/new-folder">📂 ➕ New Folder</a></p>  <!-- Add this line -->
+            <p>
+                <a href="/new-note">➕ New Note</a>
+                <a href="/new-folder">📂 New Folder</a>
+            </p>
+            <h3>Hierarchy</h3>
             <ul>
                 {% for folder in folder_tree %}
                     <li>
@@ -115,5 +116,6 @@
             </ul>
         </div>
     </div>
-</body>
-</html>
+
+
+{% endblock %}
