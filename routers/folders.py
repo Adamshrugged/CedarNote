@@ -4,14 +4,12 @@ import shutil
 
 from fastapi import APIRouter, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
 
+from core.templates import templates
+from core.config import NOTES_DIR
 from utilities.file_ops import list_folders
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
-NOTES_DIR = "notes"
-os.makedirs(NOTES_DIR, exist_ok=True)
 
 @router.get("/new-folder", response_class=HTMLResponse)
 async def new_folder_form(request: Request):

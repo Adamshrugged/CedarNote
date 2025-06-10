@@ -2,19 +2,16 @@
 from fastapi import APIRouter, Request, Query
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
+#from fastapi.staticfiles import StaticFiles
 import os
 
 # --- Basic Configs ---
 router = APIRouter()
-NOTES_DIR = "notes"
-os.makedirs(NOTES_DIR, exist_ok=True)
-
-# Templates and static folder
-templates = Jinja2Templates(directory="templates")
+from core.config import NOTES_DIR
+from core.templates import templates
 
 # --------------------- Helper Functions ---------------------
-from utilities.file_ops import list_folders
+#from utilities.file_ops import list_folders
 from utilities.formatting import parse_frontmatter
 from utilities.build_folder_tree import build_folder_tree
 
@@ -83,7 +80,7 @@ async def list_notes(
         notes.sort(key=lambda x: x["modified_time"], reverse=(order == "desc"))
 
     folder_tree = build_folder_tree(NOTES_DIR)
-
+    
     return templates.TemplateResponse("list_notes.html", {
         "request": request,
         "folder_tree": folder_tree,

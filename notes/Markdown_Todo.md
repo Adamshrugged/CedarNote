@@ -8,18 +8,20 @@ created: 2025-06-08
 # Markdown Todo list
 
 **In Progress:**
-- Add a dark mode
 - Allow changing templates
 - Cell phone template
-- Show/Hide preview on edit and new notes
-- Consistent title showing vs. file name
 - Expandable folder / subfolders = collapse / expand
 - Add search through notes (tag, category, title)
-- Make the function prettier
 - Sync and backup functionality
 
 
 **Completed:**
+- Cleanup new to be more streamlined.
+- Add a dark mode
+- Make the function prettier
+- Show/Hide preview on edit and new notes
+- Consistent title showing vs. file name
+- Preview should be 50% if only one of edit and preview visible.
 - Separate python files logically
 - Fix autosave
 - Browse or filter by tags

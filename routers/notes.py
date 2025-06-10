@@ -1,21 +1,17 @@
-from fastapi import APIRouter, HTTPException, Request, Form, Query
+from fastapi import APIRouter, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 import os
 import pathlib
 from datetime import datetime
+from starlette.responses import RedirectResponse
 
 # --------------------- Helper Functions ---------------------
 from utilities.file_ops import list_folders
 from utilities.formatting import parse_frontmatter
-from utilities.build_folder_tree import build_folder_tree
-
-
-NOTES_DIR = "notes"
-os.makedirs(NOTES_DIR, exist_ok=True)
 
 # Templates and static folder
-templates = Jinja2Templates(directory="templates")
+from core.templates import templates
+from core.config import NOTES_DIR
 
 
 router = APIRouter()
@@ -30,7 +26,6 @@ async def delete_note(path: str):
 
     safe_path.unlink()  # Delete the file
 
-    from starlette.responses import RedirectResponse
     return RedirectResponse(url="/", status_code=303)
 
 # Create a new note - get to display the form and post to save the data
@@ -65,7 +60,6 @@ async def create_note(title: str = Form(...), folder: str = Form(""), content: s
     with open(file_location, "w", encoding="utf-8") as f:
         f.write(content)
 
-    from starlette.responses import RedirectResponse
     return RedirectResponse(url="/", status_code=303)
 
 # Convert Markdown to HTML
@@ -78,9 +72,16 @@ async def edit_note(request: Request, path: str):
     markdown_text = safe_path.read_text(encoding="utf-8")
     folders = list_folders(NOTES_DIR)
 
+    lines = markdown_text.split("\n")
+    better_title = ""
+    if lines[0].strip() == "---":
+        print("yes")
+        better_title = lines[1][8:][:-1]
+
     return templates.TemplateResponse("edit_note.html", {
         "request": request,
         "title": path,
+        "better_title": better_title,
         "content": markdown_text,
         "folders": folders
     })
@@ -94,5 +95,4 @@ async def save_note(path: str, content: str = Form(...)):
 
     safe_path.write_text(content, encoding="utf-8")
 
-    from starlette.responses import RedirectResponse
     return RedirectResponse(url="/", status_code=303)

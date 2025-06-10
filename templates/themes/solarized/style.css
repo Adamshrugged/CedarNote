@@ -1,0 +1,75 @@
+
+/* Solarized-Inspired Theme */
+body {
+    background-color: #fdf6e3;
+    color: #657b83;
+    font-family: "Segoe UI", sans-serif;
+    line-height: 1.6;
+    margin: 2rem;
+}
+
+h1, h2, h3 {
+    color: #268bd2;
+}
+
+a {
+    color: #2aa198;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+button {
+    background-color: #268bd2;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    margin: 4px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+button:hover {
+    background-color: #1b6fa8;
+}
+
+textarea, input, select {
+    background-color: #eee8d5;
+    color: #073642;
+    border: 1px solid #ccc;
+    padding: 6px;
+    width: 100%;
+    font-family: monospace;
+    border-radius: 4px;
+}
+
+.toolbar {
+    margin-bottom: 1rem;
+}
+
+.editor-container {
+    display: flex;
+    gap: 20px;
+}
+
+.editor-section, .preview-section {
+    flex: 1;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: white;
+    min-height: 400px;
+    overflow: auto;
+}
+
+.save-status {
+    position: fixed;
+    bottom: 10px;
+    right: 20px;
+    background-color: #2aa198;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    display: none;
+}

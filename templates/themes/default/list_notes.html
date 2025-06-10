@@ -3,43 +3,26 @@
 {% block title %}All Notes{% endblock %}
 
 {% block content %}
-    <h1>My Notes</h1>
-
     <div style="display: flex; gap: 50px; align-items: flex-start;">
         <!-- Left Sidebar: Folder Tree -->
 
         <div style="min-width: 300px;">
-            <p>
-                <a href="/new-note">➕ New Note</a>
-                <a href="/new-folder">📂 New Folder</a>
-            </p>
             <h3>Hierarchy</h3>
             <ul>
-                {% for folder in folder_tree %}
+            {% for folder in folder_tree %}
+                <li>
+                <b>{{ folder.folder or 'Root' }}</b>
+                <ul>
+                    {% for note in folder.notes %}
                     <li>
-                        {% if folder.folder %}
-                            {% if folder.folder == current_folder %}
-                                <b><a href="/?folder={{ folder.folder }}">{{ folder.folder }}</a></b>
-                            {% else %}
-                                <a href="/?folder={{ folder.folder }}">{{ folder.folder }}</a>
-                            {% endif %}
-                        {% else %}
-                            {% if not current_folder %}
-                                <b><a href="/">Root</a></b>
-                            {% else %}
-                                <a href="/">Root</a>
-                            {% endif %}
-                        {% endif %}
-                        <ul>
-                            {% for note in folder.notes %}
-                                <li>
-                                    <a href="/notes/{{ folder.folder ~ '/' if folder.folder else '' }}{{ note }}">{{ note }}</a>
-                                </li>
-                            {% endfor %}
-                        </ul>
+                        <a href="/notes/{{ note.filename }}">{{ note.title }}</a>
                     </li>
-                {% endfor %}
+                    {% endfor %}
+                </ul>
+                </li>
+            {% endfor %}
             </ul>
+
 
 
         </div>
@@ -48,8 +31,7 @@
 
         <div style="flex: 1;">
             <p>
-                <a href="/new-note">➕ New Note</a> |
-                Sort:
+                Sort Notes:
                 {% if current_sort == "alphabetical" %}
                     <b>Title</b> |
                     <a href="/?sort=recent&order={{ current_order }}">Last Modified</a>
