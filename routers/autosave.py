@@ -1,24 +1,33 @@
-
 import os
+import pathlib
+from urllib.parse import unquote
+
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
-from urllib.parse import unquote
-import pathlib
 
+from utilities.users import require_login
+from utilities.file_ops import resolve_safe_path
 
 NOTES_DIR = "notes"
-os.makedirs(NOTES_DIR, exist_ok=True)
-
 router = APIRouter()
 
-# Auto save edits
 @router.post("/autosave-note/{path:path}")
-async def autosave_note(path: str, request: Request):
+async def autosave_note(request: Request, path: str):
+    username = require_login(request)
+    if isinstance(username, JSONResponse):  # fallback if you want to redirect
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
     decoded_path = unquote(path)
-    safe_path = pathlib.Path(NOTES_DIR) / decoded_path
+    user_notes_dir = os.path.join(NOTES_DIR, username)
+
+    try:
+        safe_path = resolve_safe_path(user_notes_dir, decoded_path)
+    except ValueError:
+        raise HTTPException(status_code=403, detail="Invalid path")
 
     if not safe_path.exists() or not safe_path.is_file():
         raise HTTPException(status_code=404, detail="File not found.")
+
     try:
         data = await request.json()
         content = data.get("content", "")

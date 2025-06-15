@@ -93,7 +93,7 @@ textarea#content {
 
 .save-status {
     position: fixed;
-    bottom: 10px;
+    bottom: 20px;
     right: 20px;
     background-color: #2aa198;
     color: white;

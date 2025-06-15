@@ -9,10 +9,12 @@
 
 <b>Editing: {{ better_title }}</b> <small>({{ title }})</small>
 
-<form method="post" action="/save-note/{{ title }}">
+<form method="post" action="{% if is_owner %}/save-note/{{ title }}{% else %}/shared-save/{{ owner }}/{{ title }}{% endif %}">
+
     <div class="toolbar">
         <button type="submit">💾 Save</button>
 
+        {% if is_owner %}
         <!-- Delete: use JS to submit this -->
         <button type="button" onclick="confirmDelete()">🗑️ Delete</button>
 
@@ -24,14 +26,13 @@
             {% endfor %}
         </select>
         <button type="button" onclick="submitMove()">📂 Move</button>
+        {% endif %}
 
         <span style="margin-left: 20px;">
             <button type="button" id="toggle-editor">📝 Toggle Edit</button>
             <button type="button" id="toggle-preview">👁️ Toggle Preview</button>
         </span>
     </div>
-
-    <div id="save-status" class="save-status">💾 Saved</div>
 
     <div class="editor-container">
         <div id="editor" class="editor-section">
@@ -40,6 +41,38 @@
         <div id="preview" class="preview-section"></div>
     </div>
 </form>
+
+<!-- Share this note with another user -->
+ {% if is_owner %}
+<h3>Share this note</h3>
+<form method="post" action="/share-note/{{ title }}">
+    <label for="share_with">Share with username:</label>
+    <input type="text" name="share_with" required>
+    <button type="submit">Share</button>
+</form>
+{% endif %}
+
+<!-- Revoke sharing -->
+ {% if is_owner and shared_users %}
+  <h3>Currently Shared With:</h3>
+  <ul>
+    {% for user in shared_users %}
+      <li>
+        {{ user }}
+        <form method="post" action="/unshare-note/{{ title }}" style="display:inline;">
+          <input type="hidden" name="unshare_with" value="{{ user }}">
+          <button type="submit">✖ Revoke</button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+
+
+<!-- Autosave indicator -->
+<div id="save-status" class="save-status">💾 Saved</div>
+
 
 <!-- Hidden Delete Form -->
 <form id="delete-form" method="post" action="/delete-note/{{ title }}"></form>

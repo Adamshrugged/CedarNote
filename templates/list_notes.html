@@ -7,7 +7,7 @@
         <!-- Left Sidebar: Folder Tree -->
 
         <div style="min-width: 300px;">
-            <h3>Hierarchy</h3>
+            <h3>Your Notes</h3>
             <ul>
             {% for folder in folder_tree %}
                 <li>
@@ -23,7 +23,13 @@
             {% endfor %}
             </ul>
 
+            <h3>Notes shared with you:</h3>
+            <ul>
+            {% for note in shared_notes %}
+                <li><a href="/shared/{{ note.owner }}/{{ note.path }}">{{ note.display_title }}</a></li>
 
+            {% endfor %}
+            </ul>
 
         </div>
 
@@ -34,7 +40,7 @@
                 Sort Notes:
                 {% if current_sort == "alphabetical" %}
                     <b>Title</b> |
-                    <a href="/?sort=recent&order={{ current_order }}">Last Modified</a>
+                    <a href="/?sort=recent&order=desc">Last Modified</a>
                 {% else %}
                     <a href="/?sort=alphabetical&order={{ current_order }}">Title</a> |
                     <b>Last Modified</b>

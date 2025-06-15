@@ -10,27 +10,139 @@ from utilities.file_ops import list_folders
 from utilities.formatting import parse_frontmatter
 
 # Templates and static folder
-from core.templates import templates, get_theme, get_templates, AVAILABLE_THEMES
+from core.templates import templates, get_theme, AVAILABLE_THEMES
 from core.config import NOTES_DIR
+from utilities.users import get_current_user, require_login
+from utilities.file_ops import resolve_safe_path, load_shared, save_shared, get_users_shared_with
 
 
 router = APIRouter()
 
 
+# Getting notes shared between users
+@router.get("/shared/{owner}/{path:path}", response_class=HTMLResponse)
+async def view_shared_note(request: Request, owner: str, path: str):
+    viewer = require_login(request)
+    if isinstance(viewer, RedirectResponse):
+        return viewer
+
+    shared = load_shared()
+    if viewer not in shared.get(owner, {}).get(path, []):
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    owner_dir = os.path.join(NOTES_DIR, owner)
+    safe_path = resolve_safe_path(owner_dir, path)
+
+    if not safe_path.exists():
+        raise HTTPException(status_code=404, detail="Note not found.")
+
+    content = safe_path.read_text()
+    theme = get_theme(request)
+
+    return templates.TemplateResponse("edit_note.html", {
+        "request": request,
+        "theme": theme,
+        "available_themes": AVAILABLE_THEMES,
+        "username": viewer,
+        "title": path,
+        "content": content,
+        "folders": [],
+        "is_owner": False,
+        "owner": owner
+    })
+
+
+@router.post("/share-note/{path:path}")
+async def share_note(request: Request, path: str, share_with: str = Form(...)):
+    username = require_login(request)
+    if isinstance(username, RedirectResponse):
+        return username
+
+    shared = load_shared()
+    shared.setdefault(username, {})
+    shared[username].setdefault(path, [])
+
+    if share_with not in shared[username][path]:
+        shared[username][path].append(share_with)
+
+    save_shared(shared)
+
+    return RedirectResponse(f"/notes/{path}", status_code=303)
+
+# Ability to edit shared notes
+@router.post("/shared-save/{owner}/{path:path}")
+async def save_shared_note(
+    request: Request,
+    owner: str,
+    path: str,
+    content: str = Form(...)
+):
+    viewer = require_login(request)
+    if isinstance(viewer, RedirectResponse):
+        return viewer
+    shared = load_shared()
+
+    allowed_users = shared.get(owner, {}).get(path, [])
+    if viewer not in allowed_users:
+        raise HTTPException(status_code=403, detail="You cannot edit this note")
+
+    owner_notes_dir = os.path.join(NOTES_DIR, owner)
+    safe_path = resolve_safe_path(owner_notes_dir, path)
+
+    if not safe_path.exists():
+        raise HTTPException(status_code=404, detail="Note not found")
+
+    safe_path.write_text(content, encoding="utf-8")
+
+    return RedirectResponse(f"/shared/{owner}/{path}", status_code=303)
+
+
+@router.post("/unshare-note/{path:path}")
+async def unshare_note(request: Request, path: str, unshare_with: str = Form(...)):
+    owner = require_login(request)
+    if isinstance(owner, RedirectResponse):
+        return owner
+
+    shared = load_shared()
+    if path in shared.get(owner, {}):
+        try:
+            shared[owner][path].remove(unshare_with)
+            if not shared[owner][path]:  # Remove entry if no one left
+                del shared[owner][path]
+            if not shared[owner]:
+                del shared[owner]
+        except ValueError:
+            pass  # not shared with that user
+
+    save_shared(shared)
+    return RedirectResponse(f"/notes/{path}", status_code=303)
+
+
+# -------------------- USERS OWN NOTES --------------------
+
 # Delete a note
 @router.post("/delete-note/{path:path}")
-async def delete_note(path: str):
-    safe_path = pathlib.Path(NOTES_DIR) / path
+async def delete_note(request: Request, path: str):
+    username = require_login(request)
+    if isinstance(username, RedirectResponse):
+        return username
+
+    user_notes_dir = os.path.join(NOTES_DIR, username)
+    safe_path = resolve_safe_path(user_notes_dir, path)
+
     if not safe_path.exists() or not safe_path.is_file():
         raise HTTPException(status_code=404, detail="File not found.")
 
-    safe_path.unlink()  # Delete the file
-
+    safe_path.unlink()
     return RedirectResponse(url="/", status_code=303)
+
 
 # Create a new note - get to display the form and post to save the data
 @router.get("/new-note", response_class=HTMLResponse)
 async def new_note_form(request: Request):
+    username = require_login(request)
+    if isinstance(username, RedirectResponse):
+        return username  # user not logged in, redirect to login
     today = datetime.today().strftime('%Y-%m-%d')
     folders = list_folders(NOTES_DIR)
     theme = get_theme(request)
@@ -38,20 +150,33 @@ async def new_note_form(request: Request):
         "request": request,
         "theme": theme,
         "available_themes": AVAILABLE_THEMES,
+        "username": username,
         "current_date": today,
         "folders": folders
     })
 @router.post("/create-note")
-async def create_note(title: str = Form(...), folder: str = Form(""), content: str = Form(...)):
+async def create_note(
+        request: Request, 
+        title: str = Form(...), 
+        folder: str = Form(""), 
+        content: str = Form(...)
+    ):
+    username = require_login(request)
+    if isinstance(username, RedirectResponse):
+        return username
+
+    user_notes_dir = os.path.join(NOTES_DIR, username)
+    os.makedirs(user_notes_dir, exist_ok=True)
     safe_title = title.replace(" ", "_")
+
     if not safe_title.endswith(".md"):
         safe_title += ".md"
 
     if folder:
-        folder_path = os.path.join(NOTES_DIR, folder.strip())
+        folder_path = os.path.join(user_notes_dir, folder.strip())
     else:
-        folder_path = NOTES_DIR
-
+        folder_path = user_notes_dir
+    os.makedirs(folder_path, exist_ok=True)
     file_location = os.path.join(folder_path, safe_title)
 
     # Prevent overwriting existing notes
@@ -65,37 +190,50 @@ async def create_note(title: str = Form(...), folder: str = Form(""), content: s
 
     return RedirectResponse(url="/", status_code=303)
 
-# Convert Markdown to HTML
+# Edit an existing note
 @router.get("/notes/{path:path}", response_class=HTMLResponse)
 async def edit_note(request: Request, path: str):
-    safe_path = pathlib.Path(NOTES_DIR) / path
+    username = require_login(request)
+    if isinstance(username, RedirectResponse):
+        return username
+
+    user_notes_dir = os.path.join(NOTES_DIR, username)
+    safe_path = resolve_safe_path(user_notes_dir, path)
+
     if not safe_path.exists() or not safe_path.is_file():
         raise HTTPException(status_code=404, detail="File not found.")
 
     markdown_text = safe_path.read_text(encoding="utf-8")
-    folders = list_folders(NOTES_DIR)
+    folders = list_folders(user_notes_dir)
     theme = get_theme(request)
 
-    lines = markdown_text.split("\n")
-    better_title = ""
-    if lines[0].strip() == "---":
-        print("yes")
-        better_title = lines[1][8:][:-1]
+    shared_users = get_users_shared_with(username, path)
 
     return templates.TemplateResponse("edit_note.html", {
         "request": request,
         "theme": theme,
         "available_themes": AVAILABLE_THEMES,
+        "username": username,
         "title": path,
-        "better_title": better_title,
         "content": markdown_text,
-        "folders": folders
+        "folders": folders,
+        "is_owner": True,
+        "owner": username,
+        "shared_users": shared_users
     })
 
-# Save existing notes back to file
+
+
+# Save notes
 @router.post("/save-note/{path:path}")
-async def save_note(path: str, content: str = Form(...)):
-    safe_path = pathlib.Path(NOTES_DIR) / path
+async def save_note(request: Request, path: str, content: str = Form(...)):
+    username = require_login(request)
+    if isinstance(username, RedirectResponse):
+        return username
+
+    user_notes_dir = os.path.join(NOTES_DIR, username)
+    safe_path = resolve_safe_path(user_notes_dir, path)
+
     if not safe_path.exists() or not safe_path.is_file():
         raise HTTPException(status_code=404, detail="File not found.")
 

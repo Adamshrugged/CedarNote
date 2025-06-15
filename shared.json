@@ -1,0 +1,12 @@
+{
+  "bob": {
+    "Bob's_note.md": [
+      "adam"
+    ]
+  },
+  "adam": {
+    "ideas/Even_better_ideas/Bob's_TODO.md": [
+      "bob"
+    ]
+  }
+}

@@ -8,13 +8,26 @@ created: 2025-06-08
 # Markdown Todo list
 
 **In Progress:**
-- Cell phone template
+- Delete folder
+  - Empty
+  - Has notes
 - Expandable folder / subfolders = collapse / expand
 - Add search through notes (tag, category, title)
 - Sync and backup functionality
 
 
 **Completed:**
+- When sharing, show who it is shared with
+- Allow sharing of notes between users
+- Does autosave show up in the right spot? Yep
+- Validate autosave still works. Yep
+- Add user functionality
+   - Login
+   - Create user
+   - Logout
+   - Show currently logged in user or link to registration
+   - Only show user notes in their folder
+- Cell phone template
 - Allow changing templates
 - Cleanup new to be more streamlined.
 - Add a dark mode

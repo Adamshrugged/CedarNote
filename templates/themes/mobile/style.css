@@ -118,8 +118,8 @@ textarea#content,
 
 /* Save status */
 .save-status {
-    position: absolute;
-    top: 10px;
+    position: fixed;
+    bottom: 20px;
     right: 20px;
     background: #dff0d8;
     color: #3c763d;

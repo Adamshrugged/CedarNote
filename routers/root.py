@@ -8,12 +8,14 @@ import os
 # --- Basic Configs ---
 router = APIRouter()
 from core.config import NOTES_DIR
-from core.templates import templates, get_theme, get_templates, AVAILABLE_THEMES
+from core.templates import templates, get_theme, AVAILABLE_THEMES
 
 # --------------------- Helper Functions ---------------------
-#from utilities.file_ops import list_folders
+from utilities.file_ops import get_notes_shared_with
 from utilities.formatting import parse_frontmatter
 from utilities.build_folder_tree import build_folder_tree
+from utilities.users import get_current_user
+
 
 
 # --------------------- Paths ---------------------
@@ -30,14 +32,16 @@ async def list_notes(
     notes = []
     all_tags = set()
     theme = get_theme(request)
+    username = get_current_user(request)
 
-    templates = get_templates(theme)
+    user_notes_dir = os.path.join(NOTES_DIR, username)
 
-    for root, dirs, files in os.walk(NOTES_DIR):
+    # Get the user's notes
+    for root, dirs, files in os.walk(user_notes_dir):
         for file in files:
             if file.endswith(".md"):
                 file_path = os.path.join(root, file)
-                relative_path = os.path.relpath(file_path, NOTES_DIR)
+                relative_path = os.path.relpath(file_path, user_notes_dir)
 
                 frontmatter = parse_frontmatter(file_path)
 
@@ -76,23 +80,39 @@ async def list_notes(
                 for t in tags:
                     all_tags.add(t)
 
+    # Get notes shared with the users
+    # Shared notes
+    shared_notes_raw = get_notes_shared_with(username)
+    shared_notes = []
+    for owner, note_path in shared_notes_raw:
+        filename = os.path.basename(note_path)
+        display_title = f"{filename.replace('_', ' ').replace('.md', '')} [{owner}]"
+        shared_notes.append({
+            "owner": owner,
+            "path": note_path,
+            "display_title": display_title
+        })
+
+
     # Sorting
     if sort == "alphabetical":
         notes.sort(key=lambda x: x["title"].lower(), reverse=(order == "desc"))
     elif sort == "recent":
         notes.sort(key=lambda x: x["modified_time"], reverse=(order == "desc"))
 
-    folder_tree = build_folder_tree(NOTES_DIR)
+    folder_tree = build_folder_tree(user_notes_dir)
     
     return templates.TemplateResponse("list_notes.html", {
         "request": request,
+        "username": username,
         "theme": theme,
         "available_themes": AVAILABLE_THEMES,
         "folder_tree": folder_tree,
         "notes": notes,
+        "shared_notes": shared_notes,
         "all_tags": sorted(all_tags),
         "current_sort": sort,
         "current_order": order,
         "current_tag": tag,
-        "current_folder": folder  # <-- pass current folder for highlighting
+        "current_folder": folder
     })
