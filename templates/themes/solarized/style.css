@@ -1,5 +1,29 @@
 
 /* Solarized-Inspired Theme */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+header nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap; /* optional: wrap to new line if space is too tight */
+}
+
+header nav form {
+  margin: 0;
+}
+
+header nav select {
+  max-width: 150px;
+  width: auto;
+}
+
 body {
     background-color: #fdf6e3;
     color: #657b83;
@@ -42,6 +66,11 @@ textarea, input, select {
     font-family: monospace;
     border-radius: 4px;
 }
+textarea#content {
+    /*height: 500px;*/
+    min-height: 100%;
+    /*box-sizing: border-box;*/
+}
 
 .toolbar {
     margin-bottom: 1rem;
@@ -73,3 +102,65 @@ textarea, input, select {
     font-size: 0.9rem;
     display: none;
 }
+
+
+/* DARK MODE */
+body.dark-mode {
+    background-color: #002b36;
+    color: #839496;
+}
+
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3 {
+    color: #268bd2;
+}
+
+body.dark-mode a {
+    color: #2aa198;
+}
+
+body.dark-mode a:hover {
+    text-decoration: underline;
+}
+
+body.dark-mode button {
+    background-color: #268bd2;
+    color: #fdf6e3;
+}
+body.dark-mode button:hover {
+    background-color: #1b6fa8;
+}
+
+body.dark-mode textarea,
+body.dark-mode input,
+body.dark-mode select {
+    background-color: #073642;
+    color: #eee8d5;
+    border: 1px solid #586e75;
+}
+
+body.dark-mode .editor-section,
+body.dark-mode .preview-section {
+    background-color: #073642;
+    color: #eee8d5;
+    border: 1px solid #586e75;
+}
+
+body.dark-mode .save-status {
+    background-color: #2aa198;
+    color: #fdf6e3;
+}
+
+body.dark-mode pre,
+body.dark-mode code {
+    background-color: #002b36;
+    color: #93a1a1;
+}
+
+body.dark-mode blockquote {
+    background-color: #073642;
+    border-left: 4px solid #586e75;
+    color: #93a1a1;
+}
+

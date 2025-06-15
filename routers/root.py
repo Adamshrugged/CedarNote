@@ -8,7 +8,7 @@ import os
 # --- Basic Configs ---
 router = APIRouter()
 from core.config import NOTES_DIR
-from core.templates import templates
+from core.templates import templates, get_theme, get_templates, AVAILABLE_THEMES
 
 # --------------------- Helper Functions ---------------------
 #from utilities.file_ops import list_folders
@@ -29,6 +29,9 @@ async def list_notes(
 ):
     notes = []
     all_tags = set()
+    theme = get_theme(request)
+
+    templates = get_templates(theme)
 
     for root, dirs, files in os.walk(NOTES_DIR):
         for file in files:
@@ -83,6 +86,8 @@ async def list_notes(
     
     return templates.TemplateResponse("list_notes.html", {
         "request": request,
+        "theme": theme,
+        "available_themes": AVAILABLE_THEMES,
         "folder_tree": folder_tree,
         "notes": notes,
         "all_tags": sorted(all_tags),

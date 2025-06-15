@@ -3,14 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}My Notes App{% endblock %}</title>
-    <link rel="stylesheet" href="/theme-static/style.css">
+    <link rel="stylesheet" href="/theme-static/{{ theme }}/style.css">
 </head>
 <body>
     <header>
         <h1><a href="/">📝 My Notes</a></h1>
         <nav>
             <a href="/new-note">➕ New Note</a> |
-            <a href="/new-folder">📂 New Folder</a>
+            <a href="/new-folder">📂 New Folder</a> 
+            <form method="post" action="/set-theme">
+              <select name="theme" onchange="this.form.submit()">
+                {% for t in available_themes %}
+                  <option value="{{ t }}" {% if theme == t %}selected{% endif %}>{{ t | capitalize }}</option>
+                {% endfor %}
+              </select>
+            </form>
         </nav>
         <hr>
     </header>

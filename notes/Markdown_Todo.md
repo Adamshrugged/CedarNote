@@ -8,7 +8,6 @@ created: 2025-06-08
 # Markdown Todo list
 
 **In Progress:**
-- Allow changing templates
 - Cell phone template
 - Expandable folder / subfolders = collapse / expand
 - Add search through notes (tag, category, title)
@@ -16,6 +15,7 @@ created: 2025-06-08
 
 
 **Completed:**
+- Allow changing templates
 - Cleanup new to be more streamlined.
 - Add a dark mode
 - Make the function prettier

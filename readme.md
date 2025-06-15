@@ -5,3 +5,5 @@ The files should be saved in markdown and easily editable.
 
 
 
+Running:
+uvicorn main:app --reload

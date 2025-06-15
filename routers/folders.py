@@ -5,7 +5,7 @@ import shutil
 from fastapi import APIRouter, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from core.templates import templates
+from core.templates import templates, get_theme, get_templates, AVAILABLE_THEMES
 from core.config import NOTES_DIR
 from utilities.file_ops import list_folders
 
@@ -14,8 +14,11 @@ router = APIRouter()
 @router.get("/new-folder", response_class=HTMLResponse)
 async def new_folder_form(request: Request):
     folders = list_folders(NOTES_DIR)
+    theme = get_theme(request)
     return templates.TemplateResponse("new_folder.html", {
         "request": request,
+        "available_themes": AVAILABLE_THEMES,
+        "theme": theme,
         "folders": folders
     })
 

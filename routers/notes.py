@@ -10,7 +10,7 @@ from utilities.file_ops import list_folders
 from utilities.formatting import parse_frontmatter
 
 # Templates and static folder
-from core.templates import templates
+from core.templates import templates, get_theme, get_templates, AVAILABLE_THEMES
 from core.config import NOTES_DIR
 
 
@@ -33,8 +33,11 @@ async def delete_note(path: str):
 async def new_note_form(request: Request):
     today = datetime.today().strftime('%Y-%m-%d')
     folders = list_folders(NOTES_DIR)
+    theme = get_theme(request)
     return templates.TemplateResponse("new_note.html", {
         "request": request,
+        "theme": theme,
+        "available_themes": AVAILABLE_THEMES,
         "current_date": today,
         "folders": folders
     })
@@ -71,6 +74,7 @@ async def edit_note(request: Request, path: str):
 
     markdown_text = safe_path.read_text(encoding="utf-8")
     folders = list_folders(NOTES_DIR)
+    theme = get_theme(request)
 
     lines = markdown_text.split("\n")
     better_title = ""
@@ -80,6 +84,8 @@ async def edit_note(request: Request, path: str):
 
     return templates.TemplateResponse("edit_note.html", {
         "request": request,
+        "theme": theme,
+        "available_themes": AVAILABLE_THEMES,
         "title": path,
         "better_title": better_title,
         "content": markdown_text,
