@@ -1,6 +1,6 @@
 # --- Libraries ---
 from fastapi import APIRouter, Request, Query
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 #from fastapi.staticfiles import StaticFiles
 import os
@@ -33,6 +33,15 @@ async def list_notes(
     all_tags = set()
     theme = get_theme(request)
     username = get_current_user(request)
+
+    # Redirect to register page if no user session
+    if not username:
+        return RedirectResponse("/register", status_code=302)
+
+
+
+    print("Session:", request.session)
+    print("Username:", username)
 
     user_notes_dir = os.path.join(NOTES_DIR, username)
 
