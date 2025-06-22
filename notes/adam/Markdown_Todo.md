@@ -8,7 +8,12 @@ created: 2025-06-08
 # Markdown Todo list
 
 **In Progress:**
-- Delete folder
+- Admin user
+- User management (delete password, reset password)
+- Delete user
+- When sharing files, should not allow sharing to users who don't already exist
+   - When a user is deleted, the shared permissions (files saved with deleted user) should be removed
+- Delete folder. 2 cases
   - Empty
   - Has notes
 - Expandable folder / subfolders = collapse / expand
@@ -27,7 +32,7 @@ created: 2025-06-08
    - Logout
    - Show currently logged in user or link to registration
    - Only show user notes in their folder
-- Cell phone template
+- Cell phone template / theme
 - Allow changing templates
 - Cleanup new to be more streamlined.
 - Add a dark mode
