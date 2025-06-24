@@ -2,4 +2,4 @@ ACTIVE_THEME = "solarized"
 NOTES_DIR = "notes"
 USERS_FILE = "core/users.json"
 SHARED_FILE = "shared.json"
-SECRET_KEY = "do_not_tell"
+SECRET_KEY = "do_not_tell"      # Replace with a better key

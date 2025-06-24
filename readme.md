@@ -14,13 +14,12 @@ Installation:
 - pip install -r requirements.txt
 
 
-Running:
-Just localhost:
-uvicorn main:app --reload
-
-Any domain:
-uvicorn main:app --reload --host 0.0.0.0 --port 8080
+**Running:**
+- Just localhost:
+   - uvicorn main:app --reload
+- Any domain:
+   - uvicorn main:app --reload --host 0.0.0.0 --port 8080
 
 You may need to update your firewall rules such as:
-sudo firewall-cmd --add-port=8080/tcp --permanent
-sudo firewall-cmd --reload
+- sudo firewall-cmd --add-port=8080/tcp --permanent
+- sudo firewall-cmd --reload
