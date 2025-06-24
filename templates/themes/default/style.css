@@ -11,7 +11,7 @@ header nav {
   display: flex;
   align-items: center;
   gap: 1rem;
-  flex-wrap: wrap; /* optional: wrap to new line if space is too tight */
+  flex-wrap: wrap;
 }
 
 header nav form {
