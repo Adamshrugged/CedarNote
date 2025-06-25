@@ -25,9 +25,7 @@
                         </summary>
                         <ul>
                             {% for note in data.get("notes", []) %}
-                                <li>
-                                    <a href="/notes/{{ note.filename }}">{{ note.title }}</a>
-                                </li>
+                                <li><a href="/notes/{{ note.filename }}">{{ note.title }}</a></li>
                             {% endfor %}
                             {% for child_name, child_data in data.get("children", {}).items() %}
                                 {{ render_folder(child_name, child_data, full_folder_path ~ "/" if full_folder_path else "") }}
@@ -36,9 +34,7 @@
                     </details>
                 </li>
             {% endmacro %}
-
-
-            {{ render_folder("", {"notes": [], "children": folder_tree}) }}
+            {{ render_folder("Root", folder_tree) }}
         </ul>
     </div>
 

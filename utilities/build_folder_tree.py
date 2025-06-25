@@ -24,18 +24,25 @@ def extract_title_from_markdown(filepath):
 
 
 def build_folder_tree(base_dir: Path) -> dict:
-    tree = {}
+    # Root node should always include notes and children
+    tree = {
+        "notes": [],
+        "children": {}
+    }
 
     for root, dirs, files in os.walk(base_dir):
         rel_root = Path(root).relative_to(base_dir)
         node = tree
+
+        # Traverse into correct nested node
         if rel_root != Path("."):
             for part in rel_root.parts:
-                node = node.setdefault("children", {}).setdefault(part, {})
-        else:
-            node = tree
+                node = node["children"].setdefault(part, {"notes": [], "children": {}})
 
+        # Ensure node has keys
         node.setdefault("notes", [])
+        node.setdefault("children", {})
+
         for file in files:
             if file.endswith(".md"):
                 full_path = Path(root) / file
@@ -45,5 +52,5 @@ def build_folder_tree(base_dir: Path) -> dict:
                     "filename": str(rel_path)
                 })
 
-    return tree.get("children", {})
+    return tree
 
