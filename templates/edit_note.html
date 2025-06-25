@@ -46,10 +46,15 @@
  {% if is_owner %}
 <h3>Share this note</h3>
 <form method="post" action="/share-note/{{ title }}">
-    <label for="share_with">Share with username:</label>
-    <input type="text" name="share_with" required>
-    <button type="submit">Share</button>
+  <label for="recipient">Share with:</label>
+  <select name="recipient" id="recipient">
+    {% for user in valid_users %}
+      <option value="{{ user }}">{{ user }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Share</button>
 </form>
+
 {% endif %}
 
 <!-- Revoke sharing -->
@@ -78,7 +83,8 @@
 <form id="delete-form" method="post" action="/delete-note/{{ title }}"></form>
 
 <!-- Hidden Move Form -->
-<form id="move-form" method="post" action="/move-note/{{ title }}">
+<form id="move-form" method="post" action="/move-note">
+    <input type="hidden" name="note_path" id="hidden-note-path" value="{{ title }}">
     <input type="hidden" name="destination_folder" id="hidden-destination-folder">
 </form>
 

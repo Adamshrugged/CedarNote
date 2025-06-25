@@ -1,5 +1,5 @@
 import os
-import pathlib
+from pathlib import Path
 import yaml
 
 def extract_title_from_markdown(filepath):
@@ -21,23 +21,29 @@ def extract_title_from_markdown(filepath):
     except Exception:
         return None
 
-def build_folder_tree(notes_dir: str):
-    tree = []
-    for folder_path, _, files in os.walk(notes_dir):
-        folder = os.path.relpath(folder_path, notes_dir)
-        folder_data = {"folder": None if folder == '.' else folder, "notes": []}
 
+
+def build_folder_tree(base_dir: Path) -> dict:
+    tree = {}
+
+    for root, dirs, files in os.walk(base_dir):
+        rel_root = Path(root).relative_to(base_dir)
+        node = tree
+        if rel_root != Path("."):
+            for part in rel_root.parts:
+                node = node.setdefault("children", {}).setdefault(part, {})
+        else:
+            node = tree
+
+        node.setdefault("notes", [])
         for file in files:
             if file.endswith(".md"):
-                full_path = os.path.join(folder_path, file)
-                title = extract_title_from_markdown(full_path) or file
-                relative_path = os.path.relpath(full_path, notes_dir)
-
-                folder_data["notes"].append({
-                    "filename": relative_path,
-                    "title": title
+                full_path = Path(root) / file
+                rel_path = full_path.relative_to(base_dir)
+                node["notes"].append({
+                    "title": file,
+                    "filename": str(rel_path)
                 })
 
-        if folder_data["notes"]:
-            tree.append(folder_data)
-    return tree
+    return tree.get("children", {})
+

@@ -2,13 +2,15 @@ import os, json
 from pathlib import Path
 from core.config import SHARED_FILE
 
-def list_folders(base_path):
-    folders = []
-    for root, dirs, files in os.walk(base_path):
-        for d in dirs:
-            rel_path = os.path.relpath(os.path.join(root, d), base_path)
-            folders.append(rel_path)
-    return sorted(folders)
+
+def list_folders(base_dir: Path) -> list[str]:
+    folders = [""]
+    folders += sorted([
+        str(p.relative_to(base_dir))
+        for p in base_dir.rglob("*")
+        if p.is_dir()
+    ])
+    return folders
 
 
 def resolve_safe_path(base_dir: str, user_path: str) -> Path:
