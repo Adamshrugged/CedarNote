@@ -8,6 +8,10 @@ def parse_frontmatter(filepath):
     with open(filepath, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
+    # Add some sanity to ignore empty files
+    if not lines:
+        return {}
+    
     if lines[0].strip() == "---":
         frontmatter_lines = []
         for line in lines[1:]:
