@@ -8,34 +8,35 @@
 
     <div style="min-width: 300px;">
         <h3>Your Notes</h3>
-
-        <ul style="list-style: none; padding-left: 0;">
-            {% macro render_folder(name, data, full_path="") %}
-                {% set full_folder_path = full_path ~ name %}
-                <li>
-                    <details open>
-                        <summary>
-                            <b>{{ name or "Root" }}</b>
-                            {% if name %}
-                                <form method="post" action="/delete-folder" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this folder?')">
-                                    <input type="hidden" name="folder_path" value="{{ full_folder_path }}">
-                                    <button type="submit" style="margin-left: 10px;">🗑️</button>
-                                </form>
-                            {% endif %}
-                        </summary>
-                        <ul>
-                            {% for note in data.get("notes", []) %}
-                                <li><a href="/notes/{{ note.filename }}">{{ note.title }}</a></li>
-                            {% endfor %}
-                            {% for child_name, child_data in data.get("children", {}).items() %}
-                                {{ render_folder(child_name, child_data, full_folder_path ~ "/" if full_folder_path else "") }}
-                            {% endfor %}
-                        </ul>
-                    </details>
-                </li>
-            {% endmacro %}
-            {{ render_folder("Root", folder_tree) }}
-        </ul>
+        <div class="folder-tree">
+            <ul style="list-style: none; padding-left: 0;">
+                {% macro render_folder(name, data, full_path="") %}
+                    {% set full_folder_path = full_path ~ name %}
+                    <li>
+                        <details open>
+                            <summary>
+                                <b>{{ name or "Root" }}</b>
+                                {% if name %}
+                                    <form method="post" action="/delete-folder" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this folder?')">
+                                        <input type="hidden" name="folder_path" value="{{ full_folder_path }}">
+                                        <button type="submit" style="margin-left: 10px;">🗑️</button>
+                                    </form>
+                                {% endif %}
+                            </summary>
+                            <ul>
+                                {% for note in data.get("notes", []) %}
+                                    <li><a href="/notes/{{ note.filename }}">{{ note.title }}</a></li>
+                                {% endfor %}
+                                {% for child_name, child_data in data.get("children", {}).items() %}
+                                    {{ render_folder(child_name, child_data, full_folder_path ~ "/" if full_folder_path else "") }}
+                                {% endfor %}
+                            </ul>
+                        </details>
+                    </li>
+                {% endmacro %}
+                {{ render_folder("Root", folder_tree) }}
+            </ul>
+        </div>
     </div>
 
     <!-- Right Content: Sorted/Filtered Notes List -->
