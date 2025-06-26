@@ -22,10 +22,6 @@ def save_users(users):
         json.dump(users, f)
 
 
-
-
-
-
 @router.get("/login", response_class=HTMLResponse)
 async def login_form(request: Request):
     theme = get_theme(request)
@@ -67,11 +63,15 @@ async def register(username: str = Form(...), password: str = Form(...)):
     if username in users:
         raise HTTPException(status_code=400, detail="Username already exists")
 
+    # First user becomes superuser
+    is_superuser = len(users) == 0
+
     users[username] = {
-        "password": bcrypt.hash(password)
+        "password": bcrypt.hash(password),
+        "is_superuser": is_superuser
     }
     save_users(users)
 
     os.makedirs(os.path.join(NOTES_DIR, username), exist_ok=True)
 
-    return RedirectResponse("/register", status_code=303)
+    return RedirectResponse("/login", status_code=303)

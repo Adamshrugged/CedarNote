@@ -36,7 +36,7 @@ app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
 
 # --------------------- Routes ---------------------
-from routers import notes, folders, autosave, root, theme_changer, users
+from routers import notes, folders, autosave, root, theme_changer, users, admin
 # Include routers
 app.include_router(notes.router)
 app.include_router(folders.router)
@@ -44,5 +44,6 @@ app.include_router(autosave.router)
 app.include_router(root.router)
 app.include_router(theme_changer.router)
 app.include_router(users.router)
+app.include_router(admin.router)
 
 

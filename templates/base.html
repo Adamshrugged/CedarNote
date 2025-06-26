@@ -30,6 +30,9 @@
           <a href="/register">🆕 Register</a> |
           <a href="/login">🔐 Login</a>
         {% endif %}
+        {% if is_superuser %}
+          | <a href="/admin">🔧 Admin</a>
+        {% endif %}
       </div>
     </nav>
   </header>

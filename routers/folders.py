@@ -10,6 +10,11 @@ from core.config import NOTES_DIR
 from utilities.file_ops import list_folders, resolve_safe_path
 from utilities.users import get_current_user, require_login
 
+
+# --------------------- Context Functions ---------------------
+from utilities.context_helpers import base_context
+
+
 router = APIRouter()
 
 @router.get("/new-folder", response_class=HTMLResponse)
@@ -20,14 +25,11 @@ async def new_folder_form(request: Request):
 
     user_notes_dir = Path(NOTES_DIR) / username
     folders = list_folders(user_notes_dir)
-    theme = get_theme(request)
-    return templates.TemplateResponse("new_folder.html", {
-        "request": request,
-        "available_themes": AVAILABLE_THEMES,
-        "theme": theme,
+    
+    return templates.TemplateResponse("new_folder.html", base_context(request, {
         "username": username,
         "folders": folders
-    })
+    }))
 
 
 @router.post("/create-folder")

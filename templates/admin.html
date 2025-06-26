@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel{% endblock %}
+
+{% block content %}
+<h2>Admin Panel</h2>
+<ul>
+    {% for user, data in users.items() %}
+        <li>
+            {{ user }} {% if data.is_superuser %}(superuser){% endif %}
+            {% if user != username %}
+                <form action="/admin/delete-user" method="post" style="display:inline;">
+                    <input type="hidden" name="user_to_delete" value="{{ user }}">
+                    <button type="submit" onclick="return confirm('Delete user {{ user }}?')">🗑 Delete</button>
+                </form>
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}

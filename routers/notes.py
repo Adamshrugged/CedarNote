@@ -7,13 +7,16 @@ from starlette.responses import RedirectResponse
 
 # --------------------- Helper Functions ---------------------
 from utilities.file_ops import list_folders
-from utilities.formatting import parse_frontmatter
 
 # Templates and static folder
 from core.templates import templates, get_theme, AVAILABLE_THEMES
 from core.config import NOTES_DIR
-from utilities.users import get_current_user, require_login, get_all_users
+from utilities.users import require_login, get_all_users
 from utilities.file_ops import resolve_safe_path, load_shared, save_shared, get_users_shared_with
+
+
+# --------------------- Context Functions ---------------------
+from utilities.context_helpers import base_context
 
 
 router = APIRouter()
@@ -40,18 +43,14 @@ async def view_shared_note(request: Request, owner: str, path: str):
 
     content = safe_path.read_text()
     theme = get_theme(request)
-
-    return templates.TemplateResponse("edit_note.html", {
-        "request": request,
-        "theme": theme,
-        "available_themes": AVAILABLE_THEMES,
-        "username": viewer,
+    
+    return templates.TemplateResponse("edit_note.html", base_context(request, {
         "title": path,
         "content": content,
         "folders": [],
         "is_owner": False,
         "owner": owner
-    })
+    }))
 
 
 @router.post("/share-note/{path:path}")
@@ -152,17 +151,14 @@ async def new_note_form(request: Request):
     if isinstance(username, RedirectResponse):
         return username
     today = datetime.today().strftime('%Y-%m-%d')
-    user_notes_dir = os.path.join(NOTES_DIR, username)
+    user_notes_dir = Path(os.path.join(NOTES_DIR, username))
     folders = list_folders(user_notes_dir)
-    theme = get_theme(request)
-    return templates.TemplateResponse("new_note.html", {
-        "request": request,
-        "theme": theme,
-        "available_themes": AVAILABLE_THEMES,
+
+    return templates.TemplateResponse("new_note.html", base_context(request, {
         "username": username,
         "current_date": today,
         "folders": folders
-    })
+    }))
 
 @router.post("/create-note")
 async def create_note(
@@ -225,11 +221,7 @@ async def edit_note(request: Request, path: str):
         if user != username and user not in shared_users
     ]
 
-    return templates.TemplateResponse("edit_note.html", {
-        "request": request,
-        "theme": theme,
-        "available_themes": AVAILABLE_THEMES,
-        "username": username,
+    return templates.TemplateResponse("edit_note.html", base_context(request, {
         "title": path,
         "content": markdown_text,
         "folders": folders,
@@ -238,7 +230,7 @@ async def edit_note(request: Request, path: str):
         "valid_users": valid_users,
         "shared_users": shared_users,
         "current_folder": current_folder
-    })
+    }))
 
 
 

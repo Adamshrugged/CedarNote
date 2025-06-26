@@ -8,7 +8,7 @@ import os
 # --- Basic Configs ---
 router = APIRouter()
 from core.config import NOTES_DIR
-from core.templates import templates, get_theme, AVAILABLE_THEMES
+from core.templates import templates, AVAILABLE_THEMES
 
 # --------------------- Helper Functions ---------------------
 from utilities.file_ops import get_notes_shared_with
@@ -16,6 +16,9 @@ from utilities.formatting import parse_frontmatter
 from utilities.build_folder_tree import build_folder_tree
 from utilities.users import get_current_user
 
+
+# --------------------- Context Functions ---------------------
+from utilities.context_helpers import base_context
 
 
 # --------------------- Paths ---------------------
@@ -31,19 +34,14 @@ async def list_notes(
 ):
     notes = []
     all_tags = set()
-    theme = get_theme(request)
     username = get_current_user(request)
 
     # Redirect to register page if no user session
     if not username:
         return RedirectResponse("/register", status_code=302)
 
-
-
-    print("Session:", request.session)
-    print("Username:", username)
-
     user_notes_dir = os.path.join(NOTES_DIR, username)
+    folder_tree = build_folder_tree(user_notes_dir)
 
     # Get the user's notes
     for root, dirs, files in os.walk(user_notes_dir):
@@ -110,12 +108,7 @@ async def list_notes(
         notes.sort(key=lambda x: x["modified_time"], reverse=(order == "desc"))
 
     folder_tree = build_folder_tree(user_notes_dir)
-    
-    return templates.TemplateResponse("list_notes.html", {
-        "request": request,
-        "username": username,
-        "theme": theme,
-        "available_themes": AVAILABLE_THEMES,
+    return templates.TemplateResponse("list_notes.html", base_context(request, {
         "folder_tree": folder_tree,
         "notes": notes,
         "shared_notes": shared_notes,
@@ -124,4 +117,4 @@ async def list_notes(
         "current_order": order,
         "current_tag": tag,
         "current_folder": folder
-    })
+    }))

@@ -12,6 +12,11 @@ def require_login(request: Request):
         return RedirectResponse("/login", status_code=303)
     return user
 
+def is_superuser(username: str) -> bool:
+    with open(USERS_FILE, "r") as f:
+        users = json.load(f)
+    return users.get(username, {}).get("is_superuser", False)
+
 
 def get_all_users():
     with open(USERS_FILE) as f:
