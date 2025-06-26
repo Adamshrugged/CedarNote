@@ -7,6 +7,19 @@ This project endeavors to be similar to Obsidian with an easy to use interface f
 - Notes autosave while being worked on. **Careful** this only works for notes already created and are editing! If you have not yet created the note, it will not autosave
 
 
+**Screenshots**
+- Browse your notes intuitively in the file structure or with metadata such as tags
+![alt text](_adverts/Screenshot_20250626_060304.png)
+- Show and hide the edit and preview window to keep focused on what's important
+![alt text](_adverts/preview_and_edit.png)
+![alt text](_adverts/edit_only.png)
+![alt text](_adverts/preview_only.png)
+- Themes and dark mode
+![alt text](_adverts/solarized_light.png)
+![alt text](_adverts/solarized_dark.png)
+
+
+
 **Installation:**
 - git clone https://github.com/Adamshrugged/MarkdownProject.git
 - cd MarkdownProject/

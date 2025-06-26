@@ -3,6 +3,7 @@ shared.json
 users.json
 core/users.json
 notes/
+#_adverts/
 
 /__pycache__
 __pycache__/main.cpython-313.pyc
