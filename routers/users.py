@@ -4,7 +4,7 @@ from passlib.hash import bcrypt
 import os, json
 
 router = APIRouter()
-from core.config import NOTES_DIR, USERS_FILE
+from core.config import NOTES_DIR, USERS_FILE, AUTH_REQUIRED
 from core.templates import templates, get_theme, AVAILABLE_THEMES
 
 def load_users():
@@ -42,7 +42,7 @@ async def login(request: Request, username: str = Form(...), password: str = For
 @router.get("/logout")
 async def logout(request: Request):
     request.session.clear()
-    return RedirectResponse("/login", status_code=303)
+    return RedirectResponse(url="/")
 
 
 
@@ -50,6 +50,11 @@ async def logout(request: Request):
 
 @router.get("/register", response_class=HTMLResponse)
 async def register_form(request: Request):
+    # If authentication setup, go to auth/login
+    if not AUTH_REQUIRED:
+        return RedirectResponse("/auth/login")
+    
+    # Otherwise proceed as normal
     theme = get_theme(request)
     return templates.TemplateResponse("register.html", {
         "request": request,
