@@ -1,3 +1,6 @@
+# Google Auth
+.env
+
 # App specific
 shared.json
 users.json

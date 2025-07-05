@@ -1,11 +1,18 @@
 # --- Libraries ---
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from dotenv import load_dotenv
 import os
 import shutil
-from fastapi.templating import Jinja2Templates
 from starlette.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
+
+
+# --- Load environment files ---
+load_dotenv()
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+
 
 # --- Basic Configs ---
 from core.templates import templates, get_theme, AVAILABLE_THEMES
