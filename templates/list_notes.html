@@ -37,6 +37,13 @@
                 {{ render_folder("Root", folder_tree) }}
             </ul>
         </div>
+
+        <h2>Shared Notes</h2>
+        <ul>
+        {% for note in shared_notes %}
+            <li><a href="/shared/{{note.owner}}/{{ note.path }}">{{ note.display_title }}</a> [{{note.owner}}]</li>
+        {% endfor %}
+        </ul>
     </div>
 
     <!-- Right Content: Sorted/Filtered Notes List -->

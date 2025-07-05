@@ -87,13 +87,12 @@ async def list_notes(
                 for t in tags:
                     all_tags.add(t)
 
-    # Get notes shared with the users
-    # Shared notes
+    # Get notes shared with the user
     shared_notes_raw = get_notes_shared_with(username)
     shared_notes = []
     for owner, note_path in shared_notes_raw:
         filename = os.path.basename(note_path)
-        display_title = f"{filename.replace('_', ' ').replace('.md', '')} [{owner}]"
+        display_title = filename.replace('_', ' ').replace('.md', '')
         shared_notes.append({
             "owner": owner,
             "path": note_path,
