@@ -24,11 +24,17 @@
 
       <div>
         {% if username %}
-          👋 Hello, {{ username }} |
-          <a href="/logout">🚪 Logout</a>
+          👋 Hello, {{ username }}
+          {% if AUTH_REQUIRED %}
+           | <a href="/logout">🚪 Logout</a>
+          {% endif %}
         {% else %}
-          <a href="/register">🆕 Register</a> |
-          <a href="/login">🔐 Login</a>
+          {% if AUTH_REQUIRED %}
+            <a href="/register">🆕 Register</a> |
+            <a href="/login">🔐 Login</a>
+          {% else %}
+            <a href="/auth/login">Login with Google</a>
+          {% endif %}
         {% endif %}
         {% if is_superuser %}
           | <a href="/admin">🔧 Admin</a>

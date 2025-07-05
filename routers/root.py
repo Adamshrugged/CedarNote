@@ -8,7 +8,7 @@ import os
 # --- Basic Configs ---
 router = APIRouter()
 from core.config import NOTES_DIR
-from core.templates import templates, AVAILABLE_THEMES
+from core.templates import templates
 
 # --------------------- Helper Functions ---------------------
 from utilities.file_ops import get_notes_shared_with
