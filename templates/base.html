@@ -9,18 +9,20 @@
   <header>
     <nav>
       <div>
-        <a href="/">📝 My Notes</a> | 
+        <a href="/my-files">📝 My Notes</a> | 
         <a href="/new-note">➕ New Note</a> |
         <a href="/new-folder">📂 New Folder</a>
       </div>
        
-      <form method="post" action="/set-theme" style="margin: 0;">
-        Theme: <select name="theme" onchange="this.form.submit()">
+      <form method="post" action="/set-theme">
+        Theme:
+        <select name="theme" onchange="this.form.submit()">
           {% for t in available_themes %}
             <option value="{{ t }}" {% if theme == t %}selected{% endif %}>{{ t | capitalize }}</option>
           {% endfor %}
         </select>
       </form>
+
 
       <div>
         {% if username %}
