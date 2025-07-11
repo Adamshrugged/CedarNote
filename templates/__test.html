@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Live Markdown Preview</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      plugins: [tailwind.typography],
+    };
+  </script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-6">
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Editor -->
+    <textarea id="content"
+              class="bg-gray-800 border border-gray-600 p-4 rounded w-full h-[60vh] resize-none"
+              placeholder="Type some markdown...">
+---
+title: "Hello"
+tags: [demo]
+---
+
+# My Heading
+
+Some **bold** text and a [link](https://example.com).
+    </textarea>
+
+    <!-- Preview -->
+    <div id="preview"
+         class="prose prose-invert bg-gray-800 border border-gray-700 p-6 rounded overflow-y-auto h-[60vh]">
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const contentEl = document.getElementById("content");
+      const previewEl = document.getElementById("preview");
+
+      function stripFrontmatter(text) {
+        if (text.startsWith('---')) {
+          const end = text.indexOf('---', 3);
+          if (end !== -1) {
+            return text.slice(end + 3).trim();
+          }
+        }
+        return text.trim();
+      }
+
+      function updatePreview() {
+        const rawText = contentEl.value;
+        const stripped = stripFrontmatter(rawText);
+        previewEl.innerHTML = marked.parse(stripped);
+      }
+
+      // Update on load and every change
+      contentEl.addEventListener("input", updatePreview);
+      updatePreview();
+    });
+  </script>
+</body>
+</html>

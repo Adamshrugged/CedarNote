@@ -1,52 +1,69 @@
 {% extends "base.html" %}
-
 {% block title %}My Files{% endblock %}
+
+{% block sidebar %}
+<aside class="w-full lg:w-64 bg-gray-700 p-4 border-r border-gray-600">
+  <h3 class="text-lg font-semibold mb-2">📁 Folders</h3>
+  <ul class="space-y-2">
+    {% for folder in folders %}
+      <li>
+        <a href="{{ folder.path }}" class="block hover:bg-gray-600 p-2 rounded">
+          {{ folder.name }}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+</aside>
+{% endblock %}
 
 {% block content %}
 
-<nav class="breadcrumbs">
-    {% if breadcrumbs %}
-        <a href="/notes">📁 Root</a>
-        {% for crumb in breadcrumbs %}
-            / <a href="{{ crumb.path }}">{{ crumb.name }}</a>
-        {% endfor %}
-    {% else %}
-        📁 Root
-    {% endif %}
+<!-- Sub-navbar: Breadcrumbs -->
+<nav class="bg-gray-800 px-4 py-2 mb-4 rounded flex flex-wrap items-center gap-2 text-sm">
+  {% if breadcrumbs %}
+    <a href="/notes" class="hover:text-green-400">📁 Root</a>
+    {% for crumb in breadcrumbs %}
+      <span>/</span>
+      <a href="{{ crumb.path }}" class="hover:text-green-400">{{ crumb.name }}</a>
+    {% endfor %}
+  {% else %}
+    <span>📁 Root</span>
+  {% endif %}
 
-    {% if current_path %}
-        <form method="post" action="/rename-folder" style="display:inline;">
-            <input type="hidden" name="current_path" value="{{ current_path }}">
-            <input type="text" name="new_name" placeholder="New folder name" required>
-            <button type="submit" title="Rename Folder">✏️ Rename</button>
-        </form>
-        {% if can_delete_folder %}
-          <form method="post" action="/delete-folder" style="display:inline;" onsubmit="return confirm('Delete this folder? Any notes inside will be moved to the parent folder.')">
-              <input type="hidden" name="folder_path" value="{{ current_path }}">
-              <button type="submit" title="Delete Folder">🗑️ Delete</button>
-          </form>
-        {% endif %}
+  {% if current_path %}
+    <!-- Rename form -->
+    <form method="post" action="/rename-folder" class="inline-flex items-center gap-2 ml-auto">
+      <input type="hidden" name="current_path" value="{{ current_path }}">
+      <input type="text" name="new_name" placeholder="New folder name" required
+             class="bg-gray-900 text-white px-2 py-1 rounded border border-gray-600">
+      <button type="submit" title="Rename Folder" class="hover:text-yellow-400">✏️</button>
+    </form>
+
+    {% if can_delete_folder %}
+      <form method="post" action="/delete-folder"
+            class="inline-block ml-2"
+            onsubmit="return confirm('Delete this folder? Any notes inside will be moved to the parent folder.')">
+        <input type="hidden" name="folder_path" value="{{ current_path }}">
+        <button type="submit" title="Delete Folder" class="hover:text-red-400">🗑️</button>
+      </form>
     {% endif %}
+  {% endif %}
 </nav>
 
-<h3>Notes:</h3>
-<ul>
-  {% for note in notes %}
-    <li>
-      <a href="{{ note.path }}">
-        {{ note.metadata.title if note.metadata and 'title' in note.metadata else note.name }}
-      </a>
-    </li>
-  {% endfor %}
-</ul>
-
-<h3>Folders:</h3>
-<ul>
-  {% for folder in folders %}
-    <li>
-      <a href="{{ folder.path }}">{{ folder.name }}</a>
-    </li>
-  {% endfor %}
-</ul>
+<!-- Notes Listing -->
+<div>
+  <h3 class="text-xl font-bold mb-2">📝 Notes</h3>
+  <ul class="space-y-2">
+    {% for note in notes %}
+      <li>
+        <a href="{{ note.path }}" class="block bg-gray-800 p-3 rounded hover:bg-gray-700">
+          {{ note.metadata.title if note.metadata and 'title' in note.metadata else note.name }}
+        </a>
+      </li>
+    {% else %}
+      <li class="text-gray-400 italic">No notes in this folder.</li>
+    {% endfor %}
+  </ul>
+</div>
 
 {% endblock %}
