@@ -10,14 +10,16 @@ from utilities.context_helpers import render_with_theme
 
 @router.get("/new-folder", response_class=HTMLResponse)
 async def new_folder_form(request: Request):
-    username = "adam"  # Replace with session later
+    user = request.session.get("user")
+    if not user:
+        return RedirectResponse("/auth/login", status_code=302)
+    username = user["email"]
 
     async with httpx.AsyncClient(base_url="http://127.0.0.1:8000") as client:
         r = await client.get(f"/api/v1/folders/{username}")
         folder_list = r.json() if r.status_code == 200 else []
 
     return render_with_theme(request, "new_folder.html", {
-        "username": username,
         "username": username,
         "folders": folder_list
     })
@@ -28,7 +30,10 @@ async def create_folder_frontend(
     folder_name: str = Form(...),
     parent_folder: str = Form(""),
 ):
-    username = "adam"  # Replace with session later
+    user = request.session.get("user")
+    if not user:
+        return RedirectResponse("/auth/login", status_code=302)
+    username = user["email"]
 
     # Build full folder path
     folder_path = f"{parent_folder}/{folder_name}".strip("/") if parent_folder else folder_name

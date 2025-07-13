@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Form
+from fastapi.responses import JSONResponse
 from storage.filesystem import FileSystemStorage
 import os
 
@@ -35,6 +36,16 @@ def create_folder(
     storage.create_folder(user=user, folder_path=folder_path)
     return {"status": "created", "path": folder_path}
 
+# If the user doesn't have a folder, create it
+@router.get("/files/{user}/")
+def ensure_user_root_exists(user: str, storage: FileSystemStorage = Depends(get_storage)):
+    """Ensure user's base folder exists (called after login)."""
+    base_path = os.path.join(storage.root_dir, user)
+    os.makedirs(base_path, exist_ok=True)
+    
+    # Optionally return list of entries (or just confirmation)
+    return storage.list_folder(user, "")
+
 
 # Get a list of folders for the user
 @router.get("/folders/{user}")
@@ -42,6 +53,9 @@ def get_all_folders(user: str):
     storage = get_storage()
     base_path = os.path.join(storage.root_dir, user)
     folder_list = []
+
+    # Always include root
+    #folder_list.append("")
 
     for root, dirs, files in os.walk(base_path):
         for d in dirs:
@@ -58,11 +72,24 @@ def get_all_folders(user: str):
 def move_note(
     user: str,
     virtual_path: str,
-    destination_folder: str = Form(...),
+    #destination_folder: str = Form(...),
+    destination_folder: str = Form(""),
     storage: FileSystemStorage = Depends(get_storage)
 ):
-    storage.move_note(user=user, virtual_path=virtual_path, destination_folder=destination_folder)
-    return {"status": "moved", "new_path": f"{destination_folder}/{os.path.basename(virtual_path)}"}
+    try:
+        print(f"🔄 Attempting to move note for user: {user}")
+        print(f"    Virtual path: {virtual_path}")
+        print(f"    Destination:  {destination_folder}")
+        storage.move_note(user=user, virtual_path=virtual_path, destination_folder=destination_folder)
+        new_path = f"{destination_folder}/{os.path.basename(virtual_path)}"
+        print(f"✅ Move complete: {new_path}")
+        return {"status": "moved", "new_path": new_path}
+    except Exception as e:
+        print(f"❌ Move failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
 
 
 

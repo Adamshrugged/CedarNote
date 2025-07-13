@@ -7,24 +7,26 @@ import httpx # type: ignore
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 from utilities.context_helpers import render_with_theme
+from utilities.users import get_current_user
+from utilities.api_client import call_internal_api
 
 
 # Create a new note - get to display the form and post to save the data
 @router.get("/new-note", response_class=HTMLResponse)
 async def new_note_form(request: Request):
-    username = "adam"
-    #username = require_login(request)
-    #if isinstance(username, RedirectResponse):
-    #    return username
+    user = get_current_user(request)
+    if not user:
+        return RedirectResponse("/auth/login", status_code=302)
+    
     today = datetime.today().strftime('%Y-%m-%d')
 
-    # Fetch folder list from the API
-    async with httpx.AsyncClient(base_url="http://127.0.0.1:8000") as client:
-        response = await client.get(f"/api/v1/folders/{username}")
-        folder_list = response.json() if response.status_code == 200 else []
+    try:
+        folder_list = await call_internal_api("GET", f"/api/v1/folders/{user.email}")
+    except Exception:
+        folder_list = []
 
     return render_with_theme(request, "new_note.html", {
-        "username": username,
+        "username": user.email,
         "current_date": today,
         "folders": folder_list
     })
@@ -37,54 +39,71 @@ async def create_note_frontend(
     folder: str = Form(""),
     content: str = Form(...)
 ):
-    username = "adam"  # Replace with session value later
+    user = get_current_user(request)
+    if not user:
+        return RedirectResponse("/auth/login", status_code=302)
+
     # Sanitize title
     title = title.replace(" ", "_")
 
+    # Virtual path is folder/title or just title
     virtual_path = f"{folder}/{title}" if folder else title
 
-    async with httpx.AsyncClient(base_url="http://127.0.0.1:8000") as client:
-        response = await client.post(
-            f"/api/v1/create/{username}",
+    try:
+        await call_internal_api(
+            "POST",
+            f"/api/v1/create/{user.email}",
             data={"title": title, "folder": folder, "content": content}
         )
-
-    if response.status_code != 200:
+    except Exception:
         return RedirectResponse("/new-note", status_code=302)
 
     return RedirectResponse(f"/notes/{virtual_path}", status_code=303)
 
+
 # Saving / updating a note
 @router.post("/save-note/{virtual_path:path}")
 async def save_note_frontend(request: Request, virtual_path: str, content: str = Form(...)):
-    username = "adam"  # Replace with real session/user later
+    user = get_current_user(request)
+    if not user:
+        return RedirectResponse("/auth/login", status_code=302)
 
-    async with httpx.AsyncClient(base_url="http://127.0.0.1:8000") as client:
-        response = await client.post(
-            f"/api/v1/files/{username}/{virtual_path}",
+    try:
+        response = await call_internal_api(
+            "POST",
+            f"/api/v1/files/{user.email}/{virtual_path}",
             data={"content": content}
         )
+    except Exception:
+        return RedirectResponse("/my-files", status_code=302)
 
     if response.status_code != 200:
-        return RedirectResponse("/my-files", status_code=302)  # fallback if something went wrong
+        return RedirectResponse("/my-files", status_code=302)
 
     return RedirectResponse(f"/notes/{virtual_path}", status_code=303)
 
+
 # Moving a note
-@router.post("/move-note/{username}/{virtual_path:path}")
+@router.post("/move-note/{virtual_path:path}")
 async def move_note_frontend(
     request: Request,
-    username: str,
     virtual_path: str,
-    destination_folder: str = Form(...)
-):
-    async with httpx.AsyncClient(base_url="http://127.0.0.1:8000") as client:
-        r = await client.post(
-            f"/api/v1/move-note/{username}/{virtual_path}",
-            data={"destination_folder": destination_folder},
-        )
+    #destination_folder: str = Form(...)
+    destination_folder: str = Form("")
 
-    if r.status_code != 200:
-        return HTMLResponse("Move failed", status_code=500)
+):
+    user = get_current_user(request)
+    if not user:
+        return RedirectResponse("/auth/login", status_code=302)
+
+    response = await call_internal_api(
+        "POST",
+        f"/api/v1/move-note/{user.email}/{virtual_path}",
+        data={"destination_folder": destination_folder},
+    )
+
+    if "error" in response:
+        return HTMLResponse(response["error"], status_code=500)
+
 
     return RedirectResponse(url=f"/notes/{destination_folder}", status_code=303)

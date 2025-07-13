@@ -34,7 +34,7 @@
       <label for="destination_folder" class="text-sm">Move:</label>
       <select id="destination_folder" name="destination_folder" class="bg-gray-700 text-white px-2 py-1 rounded">
         {% for folder in folders %}
-          <option value="{{ folder }}">{{ folder }}</option>
+          <option value="{{ folder }}">{{ '-' * folder.count('/') }} {{ folder if folder else "(Root)" }}</option>
         {% endfor %}
       </select>
       <button type="button" onclick="submitMove()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded">

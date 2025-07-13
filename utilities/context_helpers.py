@@ -2,6 +2,12 @@ from fastapi import Request
 from fastapi.templating import Jinja2Templates
 import os
 
+# Database information
+from sqlmodel import Session, select # type: ignore
+from models.db import engine
+from models.user import User
+
+
 # --------------------- Helper Functions ---------------------
 from utilities.file_ops import get_notes_shared_with
 from utilities.formatting import parse_frontmatter
@@ -26,10 +32,18 @@ def get_template_context(request: Request) -> dict:
     except FileNotFoundError:
         available_themes = ["default"]
 
+    session_user = request.session.get("user")
+    db_user = None
+    if session_user and session_user.get("email"):
+        with Session(engine) as session:
+            result = session.exec(select(User).where(User.email == session_user["email"]))
+            db_user = result.first()
+
     return {
         "request": request,
         "theme": theme,
         "available_themes": available_themes,
+        "user": db_user
     }
 
 def render_with_theme(request: Request, template_name: str, context: dict):

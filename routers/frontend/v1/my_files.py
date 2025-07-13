@@ -3,20 +3,26 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 import httpx # type: ignore
 import os
+import traceback
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 
 from utilities.context_helpers import render_with_theme
+from utilities.users import get_current_user
+from utilities.api_client import call_internal_api
 
 
 # -------------------- Delete folder --------------------
 @router.post("/delete-folder")
 async def delete_folder(request: Request, folder_path: str = Form(...)):
-    username = "adam"  # Replace with actual session logic
+    user = get_current_user(request)
+    if not user:
+        return HTMLResponse("Unauthorized", status_code=401)
+    
     async with httpx.AsyncClient(base_url="http://127.0.0.1:8000") as client:
-        r = await client.delete(f"/api/v1/files/{username}/{folder_path}")
+        r = await client.delete(f"/api/v1/files/{user.email}/{folder_path}")
     return RedirectResponse(url="/notes", status_code=303)
 
 
@@ -27,14 +33,16 @@ async def rename_folder_frontend(
     current_path: str = Form(...),
     new_name: str = Form(...)
 ):
-    username = "adam"  # Replace with session or auth in the future
+    user = get_current_user(request)
+    if not user:
+        return HTMLResponse("Unauthorized", status_code=401)
 
     # Debugging
     print(f"Received request to rename folder: {current_path} -> {new_name}")
 
     async with httpx.AsyncClient(base_url="http://127.0.0.1:8000") as client:
         response = await client.post(
-            f"/api/v1/rename-folder/{username}",
+            f"/api/v1/rename-folder/{user.email}",
             data={"current_path": current_path, "new_name": new_name}
         )
 
@@ -51,14 +59,15 @@ async def rename_folder_frontend(
 
 # -------------------- Delete file --------------------
 @router.post("/delete-note/{virtual_path:path}")
-async def delete_note_frontend(virtual_path: str):
-    username = "adam"  # Replace with session value later
+async def delete_note_frontend(request: Request, virtual_path: str):
+    user = get_current_user(request)
+    if not user:
+        return HTMLResponse("Unauthorized", status_code=401)
 
-    async with httpx.AsyncClient(base_url="http://127.0.0.1:8000") as client:
-        response = await client.delete(f"/api/v1/files/{username}/{virtual_path}")
-
-    if response.status_code != 200:
-        return HTMLResponse("Failed to delete note.", status_code=500)
+    try:
+        await call_internal_api("DELETE", f"/api/v1/files/{user.email}/{virtual_path}")
+    except Exception as e:
+        return HTMLResponse(str(e), status_code=500)
 
     return RedirectResponse("/notes", status_code=303)
 
@@ -66,17 +75,16 @@ async def delete_note_frontend(virtual_path: str):
 # -------------------- ROOT DIRECTORY: My Files --------------------
 @router.get("/my-files", response_class=HTMLResponse)
 async def list_notes(request: Request):
-    username = "adam"
-    #username = get_current_user(request)
-    #if not username:
-    #    return RedirectResponse("/register", status_code=302)
+
+    user = get_current_user(request)
+    if not user:
+        return HTMLResponse("Unauthorized", status_code=401)
 
     # Call your own API
-    async with httpx.AsyncClient(base_url="http://127.0.0.1:8000") as client:
-        r = await client.get(f"/api/v1/files/{username}/")
-        if r.status_code != 200:
-            return HTMLResponse("Error loading notes", status_code=500)
-        entries = r.json()
+    try:
+        entries = await call_internal_api("GET", f"/api/v1/files/{user.email}/")
+    except Exception as e:
+        return HTMLResponse(str(e), status_code=500)
 
     # Separate folders and notes for display
     folders = [
@@ -94,7 +102,7 @@ async def list_notes(request: Request):
     ]
 
     return render_with_theme(request, "my_files.html", {
-        "username": username,
+        #"user": user,
         "notes": notes,
         "folders": folders
     })
@@ -105,31 +113,37 @@ async def list_notes(request: Request):
 @router.get("/notes/", response_class=HTMLResponse)
 @router.get("/notes/{virtual_path:path}", response_class=HTMLResponse)
 async def browse_notes(request: Request, virtual_path: str = ""):
-    username = "adam"  # Replace with get_current_user(request) later
+    user = get_current_user(request)
+    if not user:
+        return RedirectResponse("/auth/login", status_code=302)
 
-    async with httpx.AsyncClient(base_url="http://127.0.0.1:8000") as client:
-        r = await client.get(f"/api/v1/files/{username}/{virtual_path}")
-        if r.status_code != 200:
-            return HTMLResponse("Error loading", status_code=500)
-        entries = r.json()
+    try:
+        entries = await call_internal_api("GET", f"/api/v1/files/{user.email}/{virtual_path}")
+    except Exception as e:
+        traceback.print_exc()
+        return HTMLResponse(f"Error loading notes: {str(e)}", status_code=500)
 
-        # Case: it's a note
-        if isinstance(entries, dict) and entries.get("type") == "note":
-            r2 = await client.get(f"/api/v1/folders/{username}")
-            folder_list = r2.json() if r2.status_code == 200 else []
+    # Case: it's a single note
+    if isinstance(entries, dict) and entries.get("type") == "note":
+        try:
+            #folder_list = await call_internal_api("GET", f"/api/v1/folders/{username}")
+            folder_list = await call_internal_api("GET", f"/api/v1/folders/{user.email}")
+        except Exception:
+            folder_list = []
+        # Adding root
+        folder_list.insert(0, "")
 
-            # Use metadata title if present
-            metadata = entries.get("metadata", {})
-            display_title = metadata.get("title") or virtual_path.replace("_", " ")
+        metadata = entries.get("metadata", {})
+        print( metadata.get("title") )
+        display_title = metadata.get("title") or virtual_path.replace("_", " ")
+        print( display_title )
 
-
-            return render_with_theme(request, "view_note.html", {
-                "username": username,
-                "note_content": entries["content"],
-                "path": virtual_path,
-                "folders": folder_list,
-                "display_title": display_title
-            })
+        return render_with_theme(request, "view_note.html", {
+            "note_content": entries["content"],
+            "path": virtual_path,
+            "folders": folder_list,
+            "display_title": display_title
+        })
 
     # Case: it's a folder (list of entries)
     folders = [
@@ -142,10 +156,9 @@ async def browse_notes(request: Request, virtual_path: str = ""):
         for e in entries if e["type"] == "note"
     ]
 
-    # Alert if it is a sub-folder
     has_subfolders = any(e["type"] == "folder" for e in entries)
 
-    # Split virtual_path into parts for breadcrumbs
+    # Build breadcrumbs
     breadcrumbs = []
     if virtual_path:
         parts = virtual_path.split("/")
@@ -157,11 +170,11 @@ async def browse_notes(request: Request, virtual_path: str = ""):
             })
 
     return render_with_theme(request, "my_files.html", {
-        "username": username,
         "notes": notes,
         "folders": folders,
         "current_path": virtual_path,
         "breadcrumbs": breadcrumbs,
         "can_delete_folder": not has_subfolders
     })
+
 

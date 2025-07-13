@@ -77,21 +77,21 @@
       </form>
 
       <div class="text-sm">
-        {% if username %}
-          👋 Hello, {{ username }}
+        {% if user %}
+          👋 Hello, {{ user.given_name }}
           {% if AUTH_REQUIRED %}
-          | <a href="/logout" class="hover:text-green-400">🚪 Logout</a>
+          | <a href="/logout" class="hover:text-green-400" hover:underline>🚪 Logout</a>
           {% endif %}
         {% else %}
           {% if AUTH_REQUIRED %}
-            <a href="/register" class="hover:text-green-400">🆕 Register</a> |
-            <a href="/login" class="hover:text-green-400">🔐 Login</a>
+            <a href="/register" class="hover:text-green-400 hover:underline">🆕 Register</a> |
+            <a href="/login" class="hover:text-green-400 hover:underline">🔐 Login</a>
           {% else %}
-            <a href="/auth/login" class="hover:text-green-400">Login with Google</a>
+            <a href="/auth/login" class="hover:text-green-400 hover:underline">Login with Google</a>
           {% endif %}
         {% endif %}
-        {% if is_superuser %}
-          | <a href="/admin" class="hover:text-green-400">🔧 Admin</a>
+        {% if user and user.role == 'admin' %}
+          | <a href="/admin" class="hover:text-green-400 hover:underline">Admin</a>
         {% endif %}
       </div>
 

@@ -23,6 +23,7 @@ class FileSystemStorage:
         metadata = {
             "title": "this is a title"
         }
+        metadata = file_parse_frontmatter(content)
 
         return {
             "type": "note",
@@ -83,19 +84,25 @@ class FileSystemStorage:
         return entries
 
 
-
-
-
+    # Move a note
     def move_note(self, user: str, virtual_path: str, destination_folder: str):
-        # Always use ".md" suffix since that's how your notes are saved
+        # Cleanup leading "/" if necessary
+        virtual_path = virtual_path.lstrip("/").lstrip("/")
+        destination_folder = destination_folder.lstrip("/").lstrip("/")
+        # If the virtual_path mistakenly includes the user prefix, strip it
+        if virtual_path.startswith(f"{user}/"):
+            virtual_path = virtual_path[len(user) + 1:]
+
         current_path = os.path.join(self.root_dir, user, virtual_path + ".md")
         filename = os.path.basename(virtual_path) + ".md"
         new_path = os.path.join(self.root_dir, user, destination_folder, filename)
 
         os.makedirs(os.path.dirname(new_path), exist_ok=True)
+
+        if not os.path.exists(current_path):
+            raise FileNotFoundError(f"Source note does not exist: {current_path}")
+
         os.rename(current_path, new_path)
-
-
 
 
     def create_folder(self, user: str, folder_path: str) -> None:
