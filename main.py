@@ -1,57 +1,69 @@
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
 # --- Libraries ---
+import os
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from dotenv import load_dotenv
-import os
-import shutil
-from starlette.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.requests import Request
 
+# Database and models
+from models.db import create_db_and_tables
+from models.user import User
 
-# --- Load environment files ---
-load_dotenv()
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
-GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+# Routers
+from routers.api.v1 import files
+from routers.api.v1.auth import google as google_auth
+from routers.frontend.v1 import my_files, notes_browser, folders, theme_picker, admin
 
+# Create tables in database
+create_db_and_tables()
 
-# --- Basic Configs ---
-from core.templates import templates, get_theme, AVAILABLE_THEMES
-from core.config import NOTES_DIR, ACTIVE_THEME, SECRET_KEY, USERS_FILE, SHARED_FILE
+# App init
 app = FastAPI()
-os.makedirs(NOTES_DIR, exist_ok=True)
+
+# Session middleware — must be added first and directly
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv("SECRET_KEY"),
+    session_cookie="session",
+)
 
 
-# Ensure system setup files exist. If not, tries to create it
-def ensure_file_exists(real_file: str, template_file: str):
-    """Create real_file from template_file if it doesn't exist."""
-    if not os.path.exists(real_file):
-        print(f"{real_file} not found. Creating from {template_file}.")
-        shutil.copy(template_file, real_file)
-ensure_file_exists(USERS_FILE, "template.json")
-ensure_file_exists(SHARED_FILE, "template.json")
+# Theme middleware — depends on session
+"""
+class ThemeMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # Only try to access session if it's already set up
+        try:
+            session = request.session
+            theme = session.get("user_theme", "default")
+        except Exception:
+            theme = "default"
 
+        request.state.theme = theme
+        print(f"Active theme: {theme}")
+        return await call_next(request)"""
 
-# Templates and static folder
+#app.add_middleware(ThemeMiddleware)
+
+# Mount static directories
 app.mount("/static", StaticFiles(directory="static"), name="static")
-#app.mount("/themes", StaticFiles(directory="templates/themes"), name="themes")
 app.mount("/theme-static", StaticFiles(directory="templates/themes"), name="theme_static")
 
 
-# Session middleware
-app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
-
-
-# --------------------- Routes ---------------------
-from routers import notes, folders, autosave, root, theme_changer, users, admin, auth
-# Include routers
-app.include_router(notes.router)
+# Routes
+app.include_router(google_auth.router)
+app.include_router(files.router, prefix="/api/v1")
+app.include_router(my_files.router)
 app.include_router(folders.router)
-app.include_router(autosave.router)
-app.include_router(root.router)
-app.include_router(theme_changer.router)
-app.include_router(users.router)
+app.include_router(notes_browser.router)
+app.include_router(theme_picker.router)
+
+# Admin stuff
 app.include_router(admin.router)
-app.include_router(auth.router)
-
-

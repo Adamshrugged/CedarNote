@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}My Notes - CedarNote{% endblock %}
+
+{% block sidebar %}
+<aside class="w-full lg:w-64 bg-gray-700 p-4 border-r border-gray-600">
+  <nav class="space-y-2">
+    <a href="/notes/recent" class="block hover:bg-gray-600 p-2 rounded">Recent Notes</a>
+    <a href="/notes/favorites" class="block hover:bg-gray-600 p-2 rounded">Favorites</a>
+    <a href="/notes/shared" class="block hover:bg-gray-600 p-2 rounded">Shared with Me</a>
+  </nav>
+</aside>
+{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl font-bold mb-4">Your Notes</h2>
+<p>This is your notes dashboard. List or content goes here.</p>
+{% endblock %}

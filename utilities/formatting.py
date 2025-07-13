@@ -1,6 +1,20 @@
-
-
 import yaml
+
+
+def file_parse_frontmatter(content: str) -> dict:
+    if not content:
+        return {}
+
+    if content.startswith("---"):
+        parts = content.split("---", 2)
+        if len(parts) >= 3:
+            _, meta_block, _ = parts
+            try:
+                return yaml.safe_load(meta_block) or {}
+            except yaml.YAMLError as e:
+                print("YAML error:", e)
+    return {}
+
 
  
 # Checks for YAML formatting and converts to a dictionary 

@@ -1,56 +1,73 @@
 {% extends "base.html" %}
-
 {% block title %}Create New Note{% endblock %}
 
 {% block content %}
 
-<h1>My New Note</h1>
+<!-- Page Header -->
+<div class="flex justify-between items-center mb-4">
+  <div class="text-xl font-semibold text-green-400">
+    ➕ Create a New Note
+  </div>
+</div>
 
-<form method="post" action="/create-note">
-    <!-- Toolbar -->
-    <div class="toolbar">
-        <label for="title">Title (no spaces, no extension):</label>
-        <input type="text" id="title" name="title" required>
+<!-- Create Note Form -->
+<form method="post" action="/create-note" class="space-y-6">
 
-        <label for="folder" style="margin-left: 15px;">Folder:</label>
-        <select id="folder" name="folder">
-            <option value="">(Root)</option>
-            {% for folder in folders %}
-                <option value="{{ folder }}">{{ folder }}</option>
-            {% endfor %}
-        </select>
-
-        <span style="margin-left: 20px;">
-            <button type="submit">➕ Create Note</button>
-            <button type="button" id="toggle-editor">📝 Toggle Edit</button>
-            <button type="button" id="toggle-preview">👁️ Toggle Preview</button>
-        </span>
+  <!-- Toolbar -->
+  <div class="flex flex-wrap gap-4 items-center bg-gray-800 p-4 rounded shadow">
+    <div class="flex items-center gap-2">
+      <label for="title" class="text-sm">Title:</label>
+      <input type="text" id="title" name="title" required
+             placeholder="e.g., daily_log"
+             class="bg-gray-900 text-white px-2 py-1 rounded border border-gray-600 w-48">
     </div>
 
-    <!-- Editor / Preview -->
-    <div class="editor-container">
-        <div id="editor" class="editor-section">
-            <textarea id="content" name="content" required>---
+    <div class="flex items-center gap-2">
+      <label for="folder" class="text-sm">Folder:</label>
+      <select id="folder" name="folder" class="bg-gray-900 text-white px-2 py-1 rounded border border-gray-600">
+        <option value="">(Root)</option>
+        {% for folder in folders %}
+          <option value="{{ folder }}">{{ folder }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button type="submit" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded">
+      ➕ Create Note
+    </button>
+
+    <div class="ml-auto flex gap-2">
+      <button type="button" id="toggle-editor" class="text-sm hover:text-green-400">📝 Toggle Edit</button>
+      <button type="button" id="toggle-preview" class="text-sm hover:text-green-400">👁️ Toggle Preview</button>
+    </div>
+  </div>
+
+  <!-- Editor / Preview Area -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div id="editor" class="h-[60vh]">
+      <textarea id="content" name="content" required
+                class="w-full h-full bg-gray-800 text-white p-4 rounded resize-none border border-gray-600">
+---
 title: ""
 tags: []
 category: ""
 created: {{ current_date }}
 ---
 
-# 
-
-</textarea>
-        </div>
-        <div id="preview" class="preview-section"></div>
+# </textarea>
     </div>
+    <div id="preview" class="prose prose-invert bg-gray-800 p-4 rounded overflow-y-auto h-[60vh] border border-gray-700 max-w-none">
+      <!-- Markdown preview goes here -->
+    </div>
+  </div>
 
-    <!-- Create button -->
-    <br>
-    <button type="submit">➕ Create Note</button>
 </form>
 
-<p><a href="/">← Back to Notes List</a></p>
+<!-- Footer link -->
+<p class="mt-6">
+  <a href="/" class="text-green-400 hover:underline">← Back to Notes List</a>
+</p>
 
 <script src="/static/js/marked.min.js"></script>
-<script src="/static/js/edit_note.js"></script> {# reuse existing JS file #}
+<script src="/static/js/edit_note.js"></script> {# reuse existing JS #}
 {% endblock %}

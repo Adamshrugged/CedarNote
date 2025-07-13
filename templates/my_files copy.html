@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}My Files{% endblock %}
+
+{% block content %}
+
+<nav class="breadcrumbs">
+    {% if breadcrumbs %}
+        <a href="/notes">📁 Root</a>
+        {% for crumb in breadcrumbs %}
+            / <a href="{{ crumb.path }}">{{ crumb.name }}</a>
+        {% endfor %}
+    {% else %}
+        📁 Root
+    {% endif %}
+
+    {% if current_path %}
+        <form method="post" action="/rename-folder" style="display:inline;">
+            <input type="hidden" name="current_path" value="{{ current_path }}">
+            <input type="text" name="new_name" placeholder="New folder name" required>
+            <button type="submit" title="Rename Folder">✏️ Rename</button>
+        </form>
+        {% if can_delete_folder %}
+          <form method="post" action="/delete-folder" style="display:inline;" onsubmit="return confirm('Delete this folder? Any notes inside will be moved to the parent folder.')">
+              <input type="hidden" name="folder_path" value="{{ current_path }}">
+              <button type="submit" title="Delete Folder">🗑️ Delete</button>
+          </form>
+        {% endif %}
+    {% endif %}
+</nav>
+
+<h3>Notes:</h3>
+<ul>
+  {% for note in notes %}
+    <li>
+      <a href="{{ note.path }}">
+        {{ note.metadata.title if note.metadata and 'title' in note.metadata else note.name }}
+      </a>
+    </li>
+  {% endfor %}
+</ul>
+
+<h3>Folders:</h3>
+<ul>
+  {% for folder in folders %}
+    <li>
+      <a href="{{ folder.path }}">{{ folder.name }}</a>
+    </li>
+  {% endfor %}
+</ul>
+
+{% endblock %}
