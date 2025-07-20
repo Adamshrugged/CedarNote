@@ -166,6 +166,7 @@ async def view_shared_note(request: Request, owner_email: str, path: str):
 @router.get("/notes/", response_class=HTMLResponse)
 @router.get("/notes/{virtual_path:path}", response_class=HTMLResponse)
 async def browse_notes(request: Request, virtual_path: str = ""):
+    print("Request session:", request.session)
     user = get_current_user(request)
     if not user:
         return RedirectResponse("/auth/login", status_code=302)
@@ -174,6 +175,9 @@ async def browse_notes(request: Request, virtual_path: str = ""):
     except Exception as e:
         traceback.print_exc()
         return HTMLResponse(f"Error loading notes: {str(e)}", status_code=500)
+    
+    print("Resolved user:", user)
+
 
     # Case: it's a single note
     if isinstance(entries, dict) and entries.get("type") == "note":
