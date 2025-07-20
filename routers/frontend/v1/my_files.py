@@ -28,8 +28,14 @@ async def delete_folder(request: Request, folder_path: str = Form(...)):
     if not user:
         return HTMLResponse("Unauthorized", status_code=401)
     
-    async with httpx.AsyncClient(base_url="http://127.0.0.1:8000") as client:
-        r = await client.delete(f"/api/v1/files/{user.email}/{folder_path}")
+
+    try:
+        await call_internal_api("DELETE", f"/api/v1/files/{user.email}/{folder_path}")
+    except Exception as e:
+        return HTMLResponse(str(e), status_code=500)
+
+    #async with httpx.AsyncClient(base_url="http://127.0.0.1:8000") as client:
+    #    r = await client.delete(f"/api/v1/files/{user.email}/{folder_path}")
     return RedirectResponse(url="/notes", status_code=303)
 
 
@@ -44,11 +50,19 @@ async def rename_folder_frontend(
     if not user:
         return HTMLResponse("Unauthorized", status_code=401)
 
-    async with httpx.AsyncClient(base_url="http://127.0.0.1:8000") as client:
-        response = await client.post(
+    try:
+        response = await call_internal_api("POST", 
             f"/api/v1/rename-folder/{user.email}",
             data={"current_path": current_path, "new_name": new_name}
-        )
+            )
+    except Exception as e:
+        return HTMLResponse(str(e), status_code=500)
+
+    #async with httpx.AsyncClient(base_url="http://127.0.0.1:8000") as client:
+    #    response = await client.post(
+    #        f"/api/v1/rename-folder/{user.email}",
+    #        data={"current_path": current_path, "new_name": new_name}
+    #    )
 
     if response.status_code != 200:
         print("Rename failed:", response.text)
