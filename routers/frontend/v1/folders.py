@@ -16,10 +16,11 @@ async def new_folder_form(request: Request):
     if not user:
         return RedirectResponse("/auth/login", status_code=302)
     username = user.email
+    folder_list = []
 
     try:
         r = await call_internal_api("GET", f"/api/v1/folders/{username}")
-        folder_list = r.json() if r.status_code == 200 else []
+        folder_list = r.json()
     except Exception as e:
         return HTMLResponse(str(e), status_code=500)
 
@@ -44,11 +45,12 @@ async def create_folder_frontend(
     username = user.email
 
     # Build full folder path
+    folder_list = []
     folder_path = f"{parent_folder}/{folder_name}".strip("/") if parent_folder else folder_name
     try:
         r = await call_internal_api("POST", f"/api/v1/folders/{username}",
                                     data={"folder_path": folder_path})
-        folder_list = r.json() if r.status_code == 200 else []
+        folder_list = r.json()
     except Exception as e:
         return HTMLResponse(str(e), status_code=500)
     
