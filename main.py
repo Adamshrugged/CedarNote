@@ -12,8 +12,9 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
 
 # Database and models
-from models.db import create_db_and_tables
+from models.db import create_db_and_tables, get_session
 from models.user import User
+import json
 
 # Routers
 from routers.api.v1 import files
@@ -34,6 +35,25 @@ app = FastAPI(
     redoc_url=None if is_prod else "/redoc",
     openapi_url=None if is_prod else "/openapi.json"
 )
+
+
+
+#
+# --- Dev user seeding ---
+if not is_prod:
+    from sqlmodel import select
+    with open("dev_users.json") as f:
+        users = json.load(f)
+
+    with get_session() as session:
+        for user_data in users:
+            user = session.exec(select(User).where(User.email == user_data["email"])).first()
+            if not user:
+                session.add(User(**user_data))
+        session.commit()
+
+
+
 
 # Session middleware — must be added first and directly
 app.add_middleware(
