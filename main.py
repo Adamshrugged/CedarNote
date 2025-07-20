@@ -43,10 +43,10 @@ app = FastAPI(
 if not is_prod:
     from sqlmodel import select
     with open("dev_users.json") as f:
-        users = json.load(f)
+        dev_users = json.load(f)
 
     with get_session() as session:
-        for user_data in users:
+        for user_data in dev_users:
             user = session.exec(select(User).where(User.email == user_data["email"])).first()
             if not user:
                 session.add(User(**user_data))
