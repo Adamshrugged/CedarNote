@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 import httpx # type: ignore
 import os
+from utilities.users import get_current_user
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -10,10 +11,11 @@ from utilities.context_helpers import render_with_theme
 
 @router.get("/new-folder", response_class=HTMLResponse)
 async def new_folder_form(request: Request):
-    user = request.session.get("user")
+    user = get_current_user(request)
     if not user:
         return RedirectResponse("/auth/login", status_code=302)
     username = user["email"]
+
 
     async with httpx.AsyncClient(base_url="http://127.0.0.1:8000") as client:
         r = await client.get(f"/api/v1/folders/{username}")
@@ -30,7 +32,7 @@ async def create_folder_frontend(
     folder_name: str = Form(...),
     parent_folder: str = Form(""),
 ):
-    user = request.session.get("user")
+    user = get_current_user(request)
     if not user:
         return RedirectResponse("/auth/login", status_code=302)
     username = user["email"]
