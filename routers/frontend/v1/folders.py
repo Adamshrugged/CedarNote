@@ -20,7 +20,7 @@ async def new_folder_form(request: Request):
 
     try:
         r = await call_internal_api("GET", f"/api/v1/folders/{username}")
-        folder_list = r.json()
+        folder_list = r
     except Exception as e:
         return HTMLResponse(str(e), status_code=500)
 
@@ -50,7 +50,7 @@ async def create_folder_frontend(
     try:
         r = await call_internal_api("POST", f"/api/v1/folders/{username}",
                                     data={"folder_path": folder_path})
-        folder_list = r.json()
+        folder_list = r
     except Exception as e:
         return HTMLResponse(str(e), status_code=500)
     
