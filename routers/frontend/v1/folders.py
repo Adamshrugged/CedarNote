@@ -14,7 +14,7 @@ async def new_folder_form(request: Request):
     user = get_current_user(request)
     if not user:
         return RedirectResponse("/auth/login", status_code=302)
-    username = user["email"]
+    username = user.email
 
 
     async with httpx.AsyncClient(base_url="http://127.0.0.1:8000") as client:
@@ -35,7 +35,7 @@ async def create_folder_frontend(
     user = get_current_user(request)
     if not user:
         return RedirectResponse("/auth/login", status_code=302)
-    username = user["email"]
+    username = user.email
 
     # Build full folder path
     folder_path = f"{parent_folder}/{folder_name}".strip("/") if parent_folder else folder_name
