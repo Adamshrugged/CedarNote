@@ -1,4 +1,4 @@
-from fastapi import Request
+from fastapi import Request, Depends
 from fastapi.templating import Jinja2Templates
 import os
 
@@ -13,13 +13,15 @@ from utilities.file_ops import get_notes_shared_with
 from utilities.formatting import parse_frontmatter
 from utilities.build_folder_tree import build_folder_tree
 from utilities.users import get_current_user, is_superuser
-from utilities.theme import get_template_context
 from core.config import NOTES_DIR, AUTH_REQUIRED
 from core.templates import templates, get_theme, AVAILABLE_THEMES
 
+# API stuff
+from utilities.api_client import verify_api_key
+
 templates = Jinja2Templates(directory="templates")
 
-def get_template_context(request: Request) -> dict:
+def get_template_context(request: Request, _: str = Depends(verify_api_key)) -> dict:
     theme = request.cookies.get("theme", "default")
 
     themes_dir = os.path.join("templates", "themes")

@@ -44,9 +44,6 @@ async def rename_folder_frontend(
     if not user:
         return HTMLResponse("Unauthorized", status_code=401)
 
-    # Debugging
-    print(f"Received request to rename folder: {current_path} -> {new_name}")
-
     async with httpx.AsyncClient(base_url="http://127.0.0.1:8000") as client:
         response = await client.post(
             f"/api/v1/rename-folder/{user.email}",
@@ -85,10 +82,9 @@ async def delete_note_frontend(request: Request, virtual_path: str):
 # -------------------- ROOT DIRECTORY: My Files --------------------
 @router.get("/my-files", response_class=HTMLResponse)
 async def list_notes(request: Request):
-
     user = get_current_user(request)
     if not user:
-        return HTMLResponse("Unauthorized", status_code=401)
+        return RedirectResponse("/auth/login", status_code=302)
 
     # Call your own API
     try:
@@ -138,7 +134,7 @@ async def list_notes(request: Request):
 async def view_shared_note(request: Request, owner_email: str, path: str):
     user = get_current_user(request)
     if not user:
-        return RedirectResponse("/login")
+        return RedirectResponse("/auth/login", status_code=302)
 
     # Check permission
     with Session(db.engine) as session:

@@ -18,7 +18,7 @@ from models.user import User
 # Routers
 from routers.api.v1 import files
 from routers.api.v1.auth import google as google_auth
-from routers.frontend.v1 import my_files, notes_browser, folders, theme_picker, admin, friends_ui, share_ui
+from routers.frontend.v1 import home_page, my_files, notes_browser, folders, theme_picker, admin, friends_ui, share_ui
 
 # Users, friends, sharing
 from routers.api.v1 import friends, share, users
@@ -26,9 +26,14 @@ from routers.api.v1 import friends, share, users
 
 # Create tables in database
 create_db_and_tables()
-
+is_prod = os.getenv("ENV") == "PRODUCTION"
+print(is_prod)
 # App init
-app = FastAPI()
+app = FastAPI(
+    docs_url=None if is_prod else "/docs",
+    redoc_url=None if is_prod else "/redoc",
+    openapi_url=None if is_prod else "/openapi.json"
+)
 
 # Session middleware — must be added first and directly
 app.add_middleware(
@@ -64,6 +69,7 @@ app.mount("/theme-static", StaticFiles(directory="templates/themes"), name="them
 # Routes
 app.include_router(google_auth.router)
 app.include_router(files.router, prefix="/api/v1")
+app.include_router(home_page.router)
 app.include_router(my_files.router)
 app.include_router(folders.router)
 app.include_router(notes_browser.router)

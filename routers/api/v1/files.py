@@ -10,6 +10,7 @@ from models.shared import SharedNote
 from models import db
 
 from utilities.users import get_current_user
+from utilities.api_client import verify_api_key
 
 router = APIRouter()
 
@@ -23,7 +24,8 @@ def rename_folder(
     user: str,
     current_path: str = Form(...),
     new_name: str = Form(...),
-    storage: FileSystemStorage = Depends(get_storage)
+    storage: FileSystemStorage = Depends(get_storage), 
+    _: str = Depends(verify_api_key)
 ):
     print(f"Renaming folder: {current_path} -> {new_name}")
 
@@ -39,14 +41,16 @@ def rename_folder(
 def create_folder(
     user: str,
     folder_path: str = Form(...),
-    storage: FileSystemStorage = Depends(get_storage)
+    storage: FileSystemStorage = Depends(get_storage), 
+    _: str = Depends(verify_api_key)
 ):
     storage.create_folder(user=user, folder_path=folder_path)
     return {"status": "created", "path": folder_path}
 
 # If the user doesn't have a folder, create it
 @router.get("/files/{user}/")
-def ensure_user_root_exists(user: str, storage: FileSystemStorage = Depends(get_storage)):
+def ensure_user_root_exists(user: str, storage: FileSystemStorage = Depends(get_storage), 
+    _: str = Depends(verify_api_key)):
     """Ensure user's base folder exists (called after login)."""
     base_path = os.path.join(storage.root_dir, user)
     os.makedirs(base_path, exist_ok=True)
@@ -57,7 +61,7 @@ def ensure_user_root_exists(user: str, storage: FileSystemStorage = Depends(get_
 
 # Get a list of folders for the user
 @router.get("/folders/{user}")
-def get_all_folders(user: str):
+async def get_all_folders(user: str, _: str = Depends(verify_api_key)):
     storage = get_storage()
     base_path = os.path.join(storage.root_dir, user)
     folder_list = []
@@ -82,7 +86,8 @@ def move_note(
     virtual_path: str,
     #destination_folder: str = Form(...),
     destination_folder: str = Form(""),
-    storage: FileSystemStorage = Depends(get_storage)
+    storage: FileSystemStorage = Depends(get_storage), 
+    _: str = Depends(verify_api_key)
 ):
     try:
         print(f"🔄 Attempting to move note for user: {user}")
@@ -101,11 +106,12 @@ def move_note(
 
 # Router for getting shared notes
 @router.get("/shared-note/{owner_email}/{note_path:path}")
-def read_shared_note(
+async def read_shared_note(
     owner_email: str,
     note_path: str,
     request: Request,
     storage: FileSystemStorage = Depends(get_storage),
+    _: str = Depends(verify_api_key)
 ):
     current_user = get_current_user(request)
     if not current_user:
@@ -134,7 +140,7 @@ def read_shared_note(
 
 # Gets either the folder contents or the note if there's a match
 @router.get("/files/{user}/{virtual_path:path}")
-def read_file_or_folder(user: str, virtual_path: str = "", storage: FileSystemStorage = Depends(get_storage)):
+async def read_file_or_folder(user: str, virtual_path: str = "", storage: FileSystemStorage = Depends(get_storage), _: str = Depends(verify_api_key)):
     print(user)
     print(virtual_path)
     # Try to return file content first
@@ -155,7 +161,8 @@ def save_note(
     user: str,
     virtual_path: str,
     content: str = Form(...),
-    storage: FileSystemStorage = Depends(get_storage)
+    storage: FileSystemStorage = Depends(get_storage), 
+    _: str = Depends(verify_api_key)
 ):
     storage.save_note(user=user, virtual_path=virtual_path, content=content)
     return {"status": "saved", "path": virtual_path}
@@ -166,7 +173,8 @@ def save_note(
 def delete_note_or_folder(
     user: str,
     virtual_path: str,
-    storage: FileSystemStorage = Depends(get_storage)
+    storage: FileSystemStorage = Depends(get_storage), 
+    _: str = Depends(verify_api_key)
 ):
     # Try deleting a note first
     if storage.delete_note(user, virtual_path):
@@ -186,6 +194,7 @@ def create_note(
     folder: str = Form(""),
     content: str = Form(...),
     storage: FileSystemStorage = Depends(get_storage),
+    _: str = Depends(verify_api_key)
 ):
     safe_title = title.strip().replace(" ", "_")
     virtual_path = f"{folder}/{safe_title}".strip("/") if folder else safe_title

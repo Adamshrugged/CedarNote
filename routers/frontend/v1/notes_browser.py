@@ -111,9 +111,7 @@ async def save_note_frontend(request: Request, virtual_path: str, content: str =
 async def move_note_frontend(
     request: Request,
     virtual_path: str,
-    #destination_folder: str = Form(...)
     destination_folder: str = Form("")
-
 ):
     user = get_current_user(request)
     if not user:
