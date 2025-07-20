@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const filename = window.noteFilename; // undefined on new-note
   const autosaveInterval = 5000;
+  let saveTimeout;
 
   const contentEl = document.getElementById("content");
   const previewEl = document.getElementById("preview");
@@ -64,23 +65,28 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function autoSave() {
-    const currentContent = contentEl.value;
+    let currentContent = contentEl.value;
     if (currentContent !== lastContent) {
-      try {
-        const response = await fetch(`/autosave-note/${filename}`, {
+      fetch(`/autosave-note/${VIRTUAL_PATH}`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content: currentContent }),
-        });
-        if (response.ok) {
-          lastContent = currentContent;
-          showSaveStatus();
-        } else {
-          console.error("Autosave failed");
-        }
-      } catch (err) {
-        console.error("Autosave error:", err);
-      }
+          headers: {
+              "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ content: currentContent })
+      })
+      .then(res => res.json())
+      .then(data => {
+          if (data.status === "ok") {
+              lastSaved = currentContent;
+              showSaveStatus();
+          } else {
+              console.error("Auto-save failed:", data.message);
+          }
+      })
+      .catch(err => console.error("Auto-save error:", err))
+      .finally(() => {
+          isSaving = false;
+      });
     }
   }
 
@@ -88,10 +94,15 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("toggle-editor")?.addEventListener("click", () => toggleSection("editor"));
   document.getElementById("toggle-preview")?.addEventListener("click", () => toggleSection("preview"));
   contentEl.addEventListener("input", updatePreview);
+  editorEl.addEventListener("input", () => {
+    if (saveTimeout) clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(autoSave, autosaveInterval);
+});
 
   // Initial setup
   updatePreview();
   updateSectionLayout();
+  saveStatus.style.opacity = 0;
 
   if (filename) {
     setInterval(autoSave, autosaveInterval);

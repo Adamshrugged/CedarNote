@@ -5,6 +5,7 @@
 
 <script>
   window.noteFilename = "{{ title }}";
+    const VIRTUAL_PATH = "{{ path }}";
 </script>
 
 <!-- Top Info Bar -->
@@ -25,11 +26,7 @@
       💾 Save
     </button>
 
-    {% if true %}
-    <button type="button" onclick="confirmDelete()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded">
-      🗑️ Delete
-    </button>
-
+    <!-- Move Note Dropdown -->
     <div class="flex items-center gap-2">
       <label for="destination_folder" class="text-sm">Move:</label>
       <select id="destination_folder" name="destination_folder" class="bg-gray-700 text-white px-2 py-1 rounded">
@@ -41,8 +38,22 @@
         📂 Move
       </button>
     </div>
-    {% endif %}
 
+    <!-- Share (Fake inline form, using JS submit) -->
+    <div class="flex items-center gap-2">
+      <label for="share_target" class="text-sm">Share:</label>
+      <select id="share_target" name="target_email" class="bg-gray-700 text-white px-2 py-1 rounded">
+        {% for friend in friends %}
+          <option value="{{ friend }}">{{ friend }}</option>
+        {% endfor %}
+      </select>
+      <button type="button" onclick="submitShare()" class="ml-2 px-3 py-1 bg-blue-500 rounded text-white hover:bg-blue-600">Share</button>
+    </div>
+
+  <!-- Autosave Indicator -->
+  <div id="save-status" class="flex items-center gap-2 text-sm text-green-400">💾 Saved</div>
+
+  <!-- Toggle Indicator -->
     <div class="ml-auto flex gap-2">
       <button type="button" id="toggle-editor" class="text-sm hover:text-green-400">📝 Toggle Edit</button>
       <button type="button" id="toggle-preview" class="text-sm hover:text-green-400">👁️ Toggle Preview</button>
@@ -61,49 +72,36 @@
 
 </form>
 
-<!-- Share Note -->
-{% if is_owner %}
-  <div class="mt-8 space-y-4">
-    <h3 class="text-lg font-semibold">🔗 Share this note</h3>
-    <form method="post" action="/share-note/{{ title }}" class="flex gap-4 items-center">
-      <label for="recipient" class="text-sm">Share with:</label>
-      <select name="recipient" id="recipient" class="bg-gray-700 text-white p-2 rounded">
-        {% for user in valid_users %}
-          <option value="{{ user }}">{{ user }}</option>
-        {% endfor %}
-      </select>
-      <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded">
-        Share
-      </button>
-    </form>
+<!-- Hidden Share Form -->
+<form id="share-form" method="post" action="/api/v1/share/note/{{ path }}">
+  <input type="hidden" name="target_email" id="hidden-share-email">
+</form>
 
-    {% if shared_users %}
-      <div>
-        <h4 class="font-semibold mb-2">👥 Shared with:</h4>
-        <ul class="space-y-1">
-          {% for user in shared_users %}
-            <li class="flex justify-between items-center bg-gray-700 p-2 rounded">
-              <span>{{ user }}</span>
-              <form method="post" action="/unshare-note/{{ title }}">
-                <input type="hidden" name="unshare_with" value="{{ user }}">
-                <button type="submit" class="text-red-400 hover:text-red-300 text-sm">✖ Revoke</button>
-              </form>
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
-  </div>
-{% endif %}
 
-<!-- Autosave Indicator -->
-<div id="save-status" class="text-sm text-green-400 mt-6">💾 Saved</div>
+
+
+<!-- Who Note already shared with -->
+<h4 class="text-sm text-gray-300 mt-2">Already shared with:</h4>
+<ul class="text-sm text-white list-disc list-inside">
+  {% for shared in shared_users %}
+    <li>
+      {{ shared.shared_with_email }}
+      <form method="post" action="/api/v1/share/unshare/{{ path }}/{{ shared.shared_with_email | urlencode }}" class="inline">
+        <button class="text-red-400 ml-2 hover:underline">Unshare</button>
+      </form>
+    </li>
+  {% else %}
+    <li>No one yet.</li>
+  {% endfor %}
+</ul>
+
+
 
 <!-- Hidden Delete Form -->
 <form id="delete-form" method="post" action="/delete-note/{{ path }}"></form>
 
 <!-- Hidden Move Form -->
-<form id="move-form" method="post" action="/move-note/{{ username }}/{{ path }}">
+<form id="move-form" method="post" action="/move-note/{{ username }}{{ path }}">
   <input type="hidden" name="note_path" id="hidden-note-path" value="{{ title }}">
   <input type="hidden" name="destination_folder" id="hidden-destination-folder">
 </form>
@@ -120,6 +118,13 @@
     const selectedFolder = document.getElementById('destination_folder').value;
     document.getElementById('hidden-destination-folder').value = selectedFolder;
     document.getElementById('move-form').submit();
+  }
+
+  // Share form
+  function submitShare() {
+    const email = document.getElementById("share_target").value;
+    document.getElementById("hidden-share-email").value = email;
+    document.getElementById("share-form").submit();
   }
 </script>
 

@@ -1,9 +1,16 @@
-from fastapi import Request, APIRouter, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
+from pathlib import Path
+from fastapi import HTTPException, Request, APIRouter, Form
+from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 import httpx # type: ignore
 import os
 import traceback
+
+# Needed for sharing / friends
+from sqlmodel import Session, select # type: ignore
+from models.friend import FriendRequest
+from models.shared import SharedNote
+from models import db
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -57,6 +64,9 @@ async def rename_folder_frontend(
 
 
 
+
+
+
 # -------------------- Delete file --------------------
 @router.post("/delete-note/{virtual_path:path}")
 async def delete_note_frontend(request: Request, virtual_path: str):
@@ -101,6 +111,20 @@ async def list_notes(request: Request):
         for e in entries if e["type"] == "note"
     ]
 
+    # Add shared notes
+    with Session(db.engine) as session:
+        shared_notes = session.exec(
+            select(SharedNote).where(SharedNote.shared_with_email == user.email)
+        ).all()
+
+        for shared in shared_notes:
+            notes.append({
+                "name": shared.note_path.split("/")[-1],
+                "path": f"/notes/{shared.note_path}",
+                "metadata": {"shared_by": shared.owner_email},
+                "shared": True
+            })
+
     return render_with_theme(request, "my_files.html", {
         #"user": user,
         "notes": notes,
@@ -109,6 +133,39 @@ async def list_notes(request: Request):
 
 
 
+# -------------------- View Shared file --------------------
+@router.get("/shared-note/{owner_email}/{path:path}", response_class=HTMLResponse)
+async def view_shared_note(request: Request, owner_email: str, path: str):
+    user = get_current_user(request)
+    if not user:
+        return RedirectResponse("/login")
+
+    # Check permission
+    with Session(db.engine) as session:
+        shared = session.exec(
+            select(SharedNote).where(
+                SharedNote.shared_with_email == user.email,
+                SharedNote.owner_email == owner_email,
+                SharedNote.note_path == path
+            )
+        ).first()
+
+    if not shared:
+        raise HTTPException(status_code=403, detail="Not authorized to view this note.")
+
+    # Use internal API call
+    try:
+        result = await call_internal_api("GET", f"/api/v1/files/{owner_email}/{path}")
+    except Exception as e:
+        raise HTTPException(status_code=404, detail="Note not found")
+
+    return render_with_theme(request, "edit_shared_note.html", {
+        "note_content": result["content"],  # Ensure API returns this structure
+        "path": path,
+        "owner": owner_email,
+        "is_shared": True
+    })
+
 # -------------------- BROWSING NOTES --------------------
 @router.get("/notes/", response_class=HTMLResponse)
 @router.get("/notes/{virtual_path:path}", response_class=HTMLResponse)
@@ -116,7 +173,6 @@ async def browse_notes(request: Request, virtual_path: str = ""):
     user = get_current_user(request)
     if not user:
         return RedirectResponse("/auth/login", status_code=302)
-
     try:
         entries = await call_internal_api("GET", f"/api/v1/files/{user.email}/{virtual_path}")
     except Exception as e:
@@ -134,14 +190,36 @@ async def browse_notes(request: Request, virtual_path: str = ""):
         folder_list.insert(0, "")
 
         metadata = entries.get("metadata", {})
-        print( metadata.get("title") )
         display_title = metadata.get("title") or virtual_path.replace("_", " ")
-        print( display_title )
+        
+        # Fetch accepted friends
+        with Session(db.engine) as session:
+            accepted = session.exec(
+                select(FriendRequest).where(
+                    FriendRequest.status == "accepted",
+                    ((FriendRequest.from_email == user.email) | (FriendRequest.to_email == user.email))
+                )
+            ).all()
+
+            shared_users = session.exec(
+                select(SharedNote).where(
+                    SharedNote.owner_email == user.email,
+                    SharedNote.note_path == virtual_path
+                )
+            ).all()
+
+
+            friends = [
+                r.to_email if r.from_email == user.email else r.from_email
+                for r in accepted
+            ]
 
         return render_with_theme(request, "view_note.html", {
             "note_content": entries["content"],
             "path": virtual_path,
+            "friends": friends,
             "folders": folder_list,
+            "shared_users": shared_users,
             "display_title": display_title
         })
 
@@ -178,3 +256,8 @@ async def browse_notes(request: Request, virtual_path: str = ""):
     })
 
 
+# -------------------- Display Icon for page --------------------
+
+@router.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return FileResponse("static/favicon.ico")

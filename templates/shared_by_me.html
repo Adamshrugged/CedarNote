@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Shared By Me{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">Notes You've Shared</h1>
+
+<ul class="space-y-2">
+  {% for entry in shared_by_me %}
+    <li class="bg-gray-800 p-3 rounded shadow">
+      <div>
+        <strong>{{ entry.note_title }}</strong> shared with {{ entry.shared_with }}
+        <div class="text-sm text-gray-400">Permissions: {{ entry.permission }} | Mode: {{ entry.mode }}</div>
+      </div>
+      <form method="post" action="/api/v1/share/note/{{ entry.note_id }}/{{ entry.shared_with }}">
+        <button type="submit" class="text-red-400 hover:underline mt-1">Unshare</button>
+      </form>
+    </li>
+  {% else %}
+    <li class="text-gray-400">You're not sharing any notes.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

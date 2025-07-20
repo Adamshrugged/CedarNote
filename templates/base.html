@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
   <title>{% block title %}CedarNote{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  
+
   <!-- Tailwind via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
@@ -41,6 +42,7 @@
       },
       plugins: [typographyPlugin]
     };
+    
   </script>
   {% include "tailwind_components.html" %}
 
@@ -62,11 +64,13 @@
       <a href="/my-files" class="nav-link">My Files</a>
       <a href="/new-note" class="nav-link">➕ Create Note</a>
       <a href="/new-folder" class="nav-link">📂 New Folder</a>
+      <a href="/friends" class="nav-link">Friends</a>
       <a href="/settings" class="nav-link">Settings</a>
     </nav>
 
     <!-- Right: Theme + User Info -->
     <div class="flex flex-col lg:flex-row gap-2 lg:items-center lg:gap-4">
+      <!--
       <form method="post" action="/set-theme" class="flex items-center gap-2">
         <label for="theme" class="text-sm">Theme:</label>
         <select name="theme" id="theme" class="select" onchange="this.form.submit()">
@@ -75,10 +79,11 @@
           <option value="solarized" selected>Solarized</option>
         </select>
       </form>
+      -->
 
       <div class="text-sm">
         {% if user %}
-          👋 Hello, {{ user.given_name }}
+          👋 Hello, {{ user.name }}
           {% if AUTH_REQUIRED %}
           | <a href="/logout" class="hover:text-green-400" hover:underline>🚪 Logout</a>
           {% endif %}

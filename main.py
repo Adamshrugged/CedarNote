@@ -18,7 +18,11 @@ from models.user import User
 # Routers
 from routers.api.v1 import files
 from routers.api.v1.auth import google as google_auth
-from routers.frontend.v1 import my_files, notes_browser, folders, theme_picker, admin
+from routers.frontend.v1 import my_files, notes_browser, folders, theme_picker, admin, friends_ui, share_ui
+
+# Users, friends, sharing
+from routers.api.v1 import friends, share, users
+
 
 # Create tables in database
 create_db_and_tables()
@@ -64,6 +68,13 @@ app.include_router(my_files.router)
 app.include_router(folders.router)
 app.include_router(notes_browser.router)
 app.include_router(theme_picker.router)
+
+# Sharing
+app.include_router(friends.router)
+app.include_router(share.router)
+app.include_router(users.router)
+app.include_router(friends_ui.router)
+app.include_router(share_ui.router)
 
 # Admin stuff
 app.include_router(admin.router)

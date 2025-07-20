@@ -1,7 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, Form
+from fastapi import APIRouter, Depends, HTTPException, Form, Request
 from fastapi.responses import JSONResponse
 from storage.filesystem import FileSystemStorage
 import os
+
+# Needed for sharing / friends
+from sqlmodel import Session, select # type: ignore
+from models.friend import FriendRequest
+from models.shared import SharedNote
+from models import db
+
+from utilities.users import get_current_user
 
 router = APIRouter()
 
@@ -91,13 +99,47 @@ def move_note(
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
+# Router for getting shared notes
+@router.get("/shared-note/{owner_email}/{note_path:path}")
+def read_shared_note(
+    owner_email: str,
+    note_path: str,
+    request: Request,
+    storage: FileSystemStorage = Depends(get_storage),
+):
+    current_user = get_current_user(request)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    # Check if shared with current user
+    with Session(db.engine) as session:
+        shared = session.exec(
+            select(SharedNote).where(
+                SharedNote.owner_email == owner_email,
+                SharedNote.note_path == note_path,
+                SharedNote.shared_with_email == current_user.email,
+            )
+        ).first()
+
+        if not shared:
+            raise HTTPException(status_code=403, detail="Not authorized")
+
+    # Serve the note content
+    note = storage.get_note(owner_email, note_path)
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+
+    return note
 
 
 # Gets either the folder contents or the note if there's a match
 @router.get("/files/{user}/{virtual_path:path}")
 def read_file_or_folder(user: str, virtual_path: str = "", storage: FileSystemStorage = Depends(get_storage)):
+    print(user)
+    print(virtual_path)
     # Try to return file content first
-    file_result = storage.get_note(user, virtual_path)
+    normalized_path = virtual_path if virtual_path.endswith(".md") else virtual_path + ".md"
+    file_result = storage.get_note(user, normalized_path)
     if file_result:
         return file_result
 

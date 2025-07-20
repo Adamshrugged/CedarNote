@@ -56,9 +56,15 @@
   <ul class="space-y-2">
     {% for note in notes %}
       <li>
+        {% if not note.shared %}
         <a href="{{ note.path }}" class="block bg-gray-800 p-3 rounded hover:bg-gray-700">
           {{ note.metadata.title if note.metadata and 'title' in note.metadata else note.name }}
         </a>
+        {% else %}
+        <a href="/shared-note/{{ note.metadata.shared_by }}/{{ note.name }}" class="block bg-gray-600 p-3 rounded hover:bg-gray-700">
+          {{ note.name }}
+         <span class="text-xs text-gray-400">(shared by {{ note.metadata.shared_by }})</span></a>
+        {% endif %}
       </li>
     {% else %}
       <li class="text-gray-400 italic">No notes in this folder.</li>

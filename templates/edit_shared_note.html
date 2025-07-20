@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Editing {{ display_title }}{% endblock %}
+
+{% block content %}
+
+<script>
+  window.noteFilename = "{{ title }}";
+</script>
+
+<!-- Top Info Bar -->
+<div class="flex justify-between items-center mb-4">
+  <div class="text-xl font-semibold text-green-400">
+    📝 Editing: {{ display_title }}
+  </div>
+</div>
+
+<!-- Editor Form -->
+<form method="post"
+      action="/save-note/{{ path }}"
+      class="space-y-6">
+
+  <!-- Toolbar -->
+  <div class="flex flex-wrap gap-4 items-center bg-gray-800 p-4 rounded shadow">
+    <button type="submit" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded">
+      💾 Save
+    </button>
+
+  </div>
+
+  <!-- Editor/Preview Area -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div id="editor" class="h-[60vh]">
+      <textarea id="content" name="content" required
+        class="w-full h-full bg-gray-800 text-white p-4 rounded resize-none border border-gray-600">{{ note_content.strip() }}</textarea>
+    </div>
+
+    <div id="preview" class="prose prose-invert bg-gray-800 p-4 rounded overflow-y-auto h-[60vh] border border-gray-700 max-w-none"></div>
+  </div>
+
+</form>
+
+
+<!-- Autosave Indicator -->
+<div id="save-status" class="text-sm text-green-400 mt-6">💾 Saved</div>
+
+<script src="/static/js/marked.min.js"></script>
+<script src="/static/js/edit_note.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const contentEl = document.getElementById("content");
+      const previewEl = document.getElementById("preview");
+
+      function stripFrontmatter(text) {
+        if (text.startsWith('---')) {
+          const end = text.indexOf('---', 3);
+          if (end !== -1) {
+            return text.slice(end + 3).trim();
+          }
+        }
+        return text.trim();
+      }
+
+      function updatePreview() {
+        const rawText = contentEl.value;
+        const stripped = stripFrontmatter(rawText);
+        previewEl.innerHTML = marked.parse(stripped);
+      }
+
+      // Update on load and every change
+      contentEl.addEventListener("input", updatePreview);
+      updatePreview();
+    });
+  </script>
+
+{% endblock %}

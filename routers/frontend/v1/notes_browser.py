@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from datetime import datetime
 import httpx # type: ignore
@@ -61,6 +61,28 @@ async def create_note_frontend(
     return RedirectResponse(f"/notes/{virtual_path}", status_code=303)
 
 
+# Autosaving note
+@router.post("/autosave-note/{virtual_path:path}")
+async def autosave_note_frontend(request: Request, virtual_path: str):
+    user = get_current_user(request)
+    if not user:
+        return JSONResponse({"error": "Unauthorized"}, status_code=401)
+
+    data = await request.json()
+    content = data.get("content", "")
+
+    try:
+        await call_internal_api(
+            "POST",
+            f"/api/v1/files/{user.email}/{virtual_path}",
+            data={"content": content}
+        )
+        return JSONResponse({"status": "ok"})
+    except Exception as e:
+        print(f"Error saving {virtual_path}: {e}")
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
+
 # Saving / updating a note
 @router.post("/save-note/{virtual_path:path}")
 async def save_note_frontend(request: Request, virtual_path: str, content: str = Form(...)):
@@ -75,10 +97,11 @@ async def save_note_frontend(request: Request, virtual_path: str, content: str =
             data={"content": content}
         )
     except Exception:
+        print(virtual_path)
         return RedirectResponse("/my-files", status_code=302)
 
-    if response.status_code != 200:
-        return RedirectResponse("/my-files", status_code=302)
+    #if response.get("status") != "ok":
+    #    return RedirectResponse("/my-files", status_code=302)
 
     return RedirectResponse(f"/notes/{virtual_path}", status_code=303)
 

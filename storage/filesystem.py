@@ -13,7 +13,9 @@ class FileSystemStorage:
         return os.path.join(self.root_dir, user, virtual_path)
 
     def get_note(self, user: str, virtual_path: str) -> Optional[dict]:
-        full_path = os.path.join(self.root_dir, user, virtual_path + ".md")
+        full_path = os.path.join(self.root_dir, user, virtual_path)
+        if not virtual_path.endswith(".md"):
+            virtual_path += ".md"
         if not os.path.isfile(full_path):
             return None
 

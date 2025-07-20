@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Friend Requests{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">Friend Requests</h1>
+
+<h2 class="text-xl font-semibold">Incoming</h2>
+<ul class="space-y-2 mb-6">
+  {% for user in incoming %}
+    <li class="bg-gray-800 p-3 rounded shadow flex justify-between items-center">
+      <span>{{ user }}</span>
+      <div class="space-x-2">
+        <form method="post" action="/api/v1/friends/accept/{{ user }}" class="inline">
+          <button type="submit" class="text-green-400 hover:underline">Accept</button>
+        </form>
+        <form method="post" action="/api/v1/friends/decline/{{ user }}" class="inline">
+          <button type="submit" class="text-red-400 hover:underline">Decline</button>
+        </form>
+      </div>
+    </li>
+  {% else %}
+    <li class="text-gray-400">No incoming requests.</li>
+  {% endfor %}
+</ul>
+
+<h2 class="text-xl font-semibold">Outgoing</h2>
+<ul class="space-y-2">
+  {% for user in outgoing %}
+    <li class="bg-gray-800 p-3 rounded shadow">{{ user }} (pending)</li>
+  {% else %}
+    <li class="text-gray-400">No outgoing requests.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

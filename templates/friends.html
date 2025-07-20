@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Friends{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">Your Friends</h1>
+
+{% if message %}
+  <div class="bg-green-700 text-white p-3 rounded mb-4 shadow">{{ message }}</div>
+{% endif %}
+{% if error %}
+  <div class="bg-red-700 text-white p-3 rounded mb-4 shadow">{{ error }}</div>
+{% endif %}
+
+
+<ul class="space-y-2 mt-2">
+  {% for friend in friends %}
+    <li class="bg-gray-800 p-3 rounded shadow flex justify-between items-center">
+      <span>{{ friend }}</span>
+      <form method="post" action="/api/v1/friends/remove/{{ friend }}">
+        <button type="submit" class="text-red-400 hover:underline">Remove</button>
+      </form>
+    </li>
+  {% else %}
+    <li class="text-gray-400">You don’t have any friends yet.</li>
+  {% endfor %}
+</ul>
+
+<h2 class="text-xl font-semibold mt-8">Pending Friend Requests</h2>
+
+<ul class="space-y-2 mt-2">
+  {% for req in outgoing_requests %}
+    <li class="bg-yellow-800 p-3 rounded shadow flex justify-between items-center">
+      <span>Waiting on {{ req.to_email }}</span>
+      <form method="post" action="/api/v1/friends/cancel-request/{{ req.to_email }}">
+        <button type="submit" class="text-red-400 hover:underline">Cancel</button>
+      </form>
+    </li>
+  {% else %}
+    <li class="text-gray-400">No outgoing friend requests.</li>
+  {% endfor %}
+</ul>
+
+
+<h2 class="text-xl font-semibold mt-8">Incoming Friend Requests</h2>
+
+<ul class="space-y-2 mt-2">
+  {% for req in incoming_requests %}
+    <li class="bg-blue-800 p-3 rounded shadow flex justify-between items-center">
+      <span>{{ req.from_email }}</span>
+      <div class="space-x-2">
+        <form method="post" action="/api/v1/friends/accept/{{ req.from_email }}" class="inline">
+          <button type="submit" class="text-green-400 hover:underline">Accept</button>
+        </form>
+        <form method="post" action="/api/v1/friends/decline/{{ req.from_email }}" class="inline">
+          <button type="submit" class="text-red-400 hover:underline">Decline</button>
+        </form>
+      </div>
+    </li>
+  {% else %}
+    <li class="text-gray-400">No incoming friend requests.</li>
+  {% endfor %}
+</ul>
+
+
+<h2 class="text-xl font-semibold mt-8">Add Friend</h2>
+<form method="post" action="/api/v1/friends/request" class="mt-2">
+  <input name="username" placeholder="Enter username" class="p-2 rounded bg-gray-700 text-white" required>
+  <button type="submit" class="ml-2 px-4 py-2 bg-blue-500 rounded text-white hover:bg-blue-600">Send Request</button>
+</form>
+{% endblock %}
