@@ -34,7 +34,7 @@ async def resolve_shared_note(
                 "path": result.note_path
             }
 
-        return {"is_shared": False}c
+        return {"is_shared": False}
 
 
 
