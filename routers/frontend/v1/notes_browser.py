@@ -90,20 +90,30 @@ async def save_note_frontend(request: Request, virtual_path: str, content: str =
     if not user:
         return RedirectResponse("/auth/login", status_code=302)
 
+    # Determine if this is a shared note and find the true owner
+    original_owner = user.email
+    resolved_path = virtual_path
+
+    shared_info = await call_internal_api(
+        "GET", f"/api/v1/shared-metadata/{user.email}/{virtual_path}"
+    )
+    if shared_info.get("is_shared"):
+        original_owner = shared_info["owner"]
+        resolved_path = shared_info["path"]
+
+    # Save the note to the true owner/path
     try:
         response = await call_internal_api(
             "POST",
-            f"/api/v1/files/{user.email}/{virtual_path}",
+            f"/api/v1/files/{original_owner}/{resolved_path}",
             data={"content": content}
         )
     except Exception:
         print(virtual_path)
         return RedirectResponse("/my-files", status_code=302)
 
-    #if response.get("status") != "ok":
-    #    return RedirectResponse("/my-files", status_code=302)
-
     return RedirectResponse(f"/notes/{virtual_path}", status_code=303)
+
 
 
 # Moving a note
