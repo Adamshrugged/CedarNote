@@ -16,8 +16,7 @@ router = APIRouter(prefix="/api/v1/share", tags=["Sharing"])
 async def share_note_with_user(
     note_path: str,
     target_email: str = Form(...),
-    current_user: User = Depends(get_current_user),
-    _: str = Depends(verify_api_key)
+    current_user: User = Depends(get_current_user)
 ):
     with Session(db.engine) as session:
         # Check if already shared
@@ -46,7 +45,7 @@ async def share_note_with_user(
     )
 
 @router.post("/unshare/{note_path}/{target_email}")
-async def unshare_note(note_path: str, target_email: str, current_user: User = Depends(get_current_user), _: str = Depends(verify_api_key)):
+async def unshare_note(note_path: str, target_email: str, current_user: User = Depends(get_current_user)):
     """
     Unshare a note with a specific user.
     """
