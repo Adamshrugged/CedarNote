@@ -115,7 +115,12 @@ async def save_note_frontend(request: Request, virtual_path: str, content: str =
         print(virtual_path)
         return RedirectResponse("/my-files", status_code=302)
 
-    return RedirectResponse(f"/notes/{virtual_path}", status_code=303)
+    #return RedirectResponse(f"/notes/{virtual_path}", status_code=303)
+    if shared_info.get("is_shared"):
+        return RedirectResponse(f"/shared-note/{shared_info['owner']}/{shared_info['path']}", status_code=303)
+    else:
+        return RedirectResponse(f"/notes/{virtual_path}", status_code=303)
+
 
 
 
