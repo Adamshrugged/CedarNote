@@ -95,8 +95,11 @@ async def save_note_frontend(request: Request, virtual_path: str, content: str =
     resolved_path = virtual_path
 
     shared_info = await call_internal_api(
-        "GET", f"/api/v1/share/resolve/{virtual_path}"
+        "GET",
+        f"/api/v1/share/resolve/{virtual_path}",
+        headers={"x-user-email": user.email}
     )
+
     if shared_info.get("is_shared"):
         original_owner = shared_info["owner"]
         resolved_path = shared_info["path"]
