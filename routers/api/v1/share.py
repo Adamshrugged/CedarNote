@@ -12,6 +12,37 @@ from utilities.api_client import verify_api_key
 
 router = APIRouter(prefix="/api/v1/share", tags=["Sharing"])
 
+
+# Needed for validating shared notes are checked when saving
+@router.get("/resolve/{virtual_path:path}")
+async def resolve_shared_note(
+    virtual_path: str,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Determine whether the note at the given virtual_path is shared.
+    If it is, return the true owner and path. If not, return is_shared: false.
+    """
+    with db.get_session() as session:
+        result = session.exec(
+            select(SharedNote).where(
+                SharedNote.shared_with_email == current_user.email,
+                SharedNote.note_path == virtual_path
+            )
+        ).first()
+
+        if result:
+            return {
+                "is_shared": True,
+                "owner": result.owner_email,
+                "path": result.note_path
+            }
+
+        return {
+            "is_shared": False
+        }
+
+
 @router.post("/note/{note_path:path}")
 async def share_note_with_user(
     note_path: str,
