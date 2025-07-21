@@ -46,6 +46,7 @@ def is_superuser(username: str) -> bool:
     return users.get(username, {}).get("is_superuser", False)
 
 
+
 def get_all_users():
     with open(USERS_FILE) as f:
         return list(json.load(f).keys())  # assuming top-level keys are usernames

@@ -46,8 +46,8 @@ async def logout(request: Request):
 
 @router.get("/auth/login", response_class=HTMLResponse)
 async def login(request: Request):
+    # Dev mode: simple form
     if not is_prod:
-        # Dev mode: simple form
         return HTMLResponse("""
             <h2>Dev Login</h2>
             <form method="post" action="/auth/login">

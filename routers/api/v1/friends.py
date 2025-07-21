@@ -7,11 +7,13 @@ from models import db
 from models.user import User
 from models.friend import FriendRequest
 
-from utilities.api_client import verify_api_key
+#from utilities.api_client import verify_api_key
+
+
 router = APIRouter(prefix="/api/v1/friends", tags=["Friends"])
 
 @router.post("/accept/{from_email}")
-async def accept_friend_request(from_email: str, current_user: User = Depends(get_current_user), _: str = Depends(verify_api_key)):
+async def accept_friend_request(from_email: str, current_user: User = Depends(get_current_user)):
     with Session(db.engine) as session:
         request = session.exec(
             select(FriendRequest).where(
@@ -34,7 +36,7 @@ async def accept_friend_request(from_email: str, current_user: User = Depends(ge
     )
 
 @router.post("/decline/{from_email}")
-async def decline_friend_request(from_email: str, current_user: User = Depends(get_current_user), _: str = Depends(verify_api_key)):
+async def decline_friend_request(from_email: str, current_user: User = Depends(get_current_user)):
     with Session(db.engine) as session:
         request = session.exec(
             select(FriendRequest).where(
@@ -58,7 +60,7 @@ async def decline_friend_request(from_email: str, current_user: User = Depends(g
 
 
 @router.post("/cancel-request/{to_email}")
-async def cancel_friend_request(to_email: str, current_user: User = Depends(get_current_user), _: str = Depends(verify_api_key)):
+async def cancel_friend_request(to_email: str, current_user: User = Depends(get_current_user)):
     with Session(db.engine) as session:
         request = session.exec(
             select(FriendRequest).where(
@@ -83,8 +85,7 @@ async def cancel_friend_request(to_email: str, current_user: User = Depends(get_
 @router.post("/request")
 async def send_friend_request(
     username: str = Form(...),
-    current_user: User = Depends(get_current_user), 
-    _: str = Depends(verify_api_key)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Send a friend request to another user.
@@ -125,7 +126,7 @@ async def send_friend_request(
 
 
 @router.post("/remove/{username}")
-async def remove_friend(username: str, current_user: User = Depends(get_current_user), _: str = Depends(verify_api_key)):
+async def remove_friend(username: str, current_user: User = Depends(get_current_user)):
     """
     Unfriend someone.
     """
@@ -139,7 +140,7 @@ async def list_friends(current_user: User = Depends(get_current_user)):
     return {"friends": []}  # TODO: Return actual list
 
 @router.get("/requests")
-async def get_friend_requests(current_user: User = Depends(get_current_user), _: str = Depends(verify_api_key)):
+async def get_friend_requests(current_user: User = Depends(get_current_user)):
     """
     Get incoming and outgoing friend requests.
     """
